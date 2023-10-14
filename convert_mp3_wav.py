@@ -23,7 +23,7 @@ def parse_input(args=None):
 
 
 class ConvertAudio:
-    def __init__(self, direc, mono):
+    def __init__(self, direc, mono=None):
         self.direc = direc
         self.mono = mono
         self.files = None
