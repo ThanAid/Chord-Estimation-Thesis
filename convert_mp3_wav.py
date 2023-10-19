@@ -31,11 +31,13 @@ class ConvertAudio:
         self.get_file_list()
         self.convert()
 
-    def mp3_to_wav(self, file):
+    @staticmethod
+    def mp3_to_wav(file):
         subprocess.call(['ffmpeg', '-i', file,
                          file.split('.mp3')[0] + '.wav'])
 
-    def stereo_to_mono(self, file):
+    @staticmethod
+    def stereo_to_mono(file):
         sound = AudioSegment.from_wav(file.split('.mp3')[0] + '.wav')
         sound = sound.set_channels(1)
         sound.export(file.split('.mp3')[0] + ".wav", format="wav")
