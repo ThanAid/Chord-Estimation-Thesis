@@ -1,13 +1,21 @@
 import pandas as pd
 import numpy as np
+from label_utils import *
 
 PITCH_CLASS_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+FLAT_TO_SHARP = {
+    'Db': 'C#',
+    'Eb': 'D#',
+    'Gb': 'F#',
+    'Ab': 'G#',
+    'Bb': 'A#'
+}
 
 
-def read_lab(label_path):
+def read_lab(lbl_path):
     """read a .lab mirex formatted file and return a df"""
 
-    return pd.read_csv(label_path, delimiter=' ', names=['start', 'end', 'chord'])
+    return pd.read_csv(lbl_path, delimiter=' ', names=['start', 'end', 'chord'])
 
 
 class AdaptLabels:
@@ -68,6 +76,8 @@ class CovertLab:
         df['root'] = df[label_col].apply(lambda i: CovertLab.get_root(i))
         df['bass'] = df[label_col].apply(lambda i: CovertLab.get_bass(i))
         df['triad'] = df[label_col].apply(lambda i: CovertLab.get_triad(i))
+        df['extension_1'] = df[label_col].apply(lambda i: CovertLab.get_extension_1(i))
+        df['extension_2'] = df[label_col].apply(lambda i: CovertLab.get_extension_2(i))
         # TODO: Better just use columns 'pc_0', 'pc_1', ..., 'pc_12' that can be
         # later selected more easily.
         # for pc, name in enumerate(PITCH_CLASS_NAMES):
@@ -92,6 +102,7 @@ class CovertLab:
         root = CovertLab.get_root(chord)  # TODO: optimize that
         if "/" in chord:
             bass = chord.split("/")[1]
+            bass = CovertLab.translate_bass(root, bass)
             # TODO: translate bass to actual note
         else:
             bass = root
@@ -105,16 +116,44 @@ class CovertLab:
             triad = "Minor"
         else:
             triad = "N"
+        # TODO: include Diminished , Augmented , Sus 2, Sus4
         return triad
+
+    @staticmethod
+    def get_extension_1(chord):
+        # If the chord is an inversion keep the base part of the chord
+        if "/" in chord:
+            chord = chord.split("/")[0]
+        if 'maj6' in chord:
+            return 'maj6'
+        elif 'maj7' in chord:
+            return 'maj7'
+        elif '7' in chord or '9' in chord:
+            return 'min7'
+        elif 'dim7' in chord:
+            return 'dim7'
+        else:
+            return 'N'
+
+    @staticmethod
+    def get_extension_2(chord):
+        # If the chord is an inversion keep the base part of the chord
+        if "/" in chord:
+            chord = chord.split("/")[0]
+        if '9' in chord:
+            return 'maj9'
+        else:
+            return 'N'
 
     @staticmethod
     def translate_bass(root, bass):
         """Translates bass to actual note based on root"""
-        # TODO: music theory study
-        pass
-        return 0
-
-
+        shifted_pitches = shift_list(PITCH_CLASS_NAMES, root)
+        if not bass.isdigit():
+            # if b7 convert to a semitone back
+            bass = int(''.join(i for i in bass if i.isdigit()))
+            return shifted_pitches[int(bass) * 2 - 3]  # (bass-1)*2 - 1(b) because of idx starting from 0
+        return shifted_pitches[int(bass) * 2 - 2]  # (bass-1)*2  because of idx starting from 0
 
 
 if __name__ == "__main__":
@@ -122,3 +161,4 @@ if __name__ == "__main__":
     label = read_lab(label_path)
 
     converted_test = CovertLab.convert_chordlab_df(label, label_col='chord')
+    print()
