@@ -11,11 +11,30 @@ FLAT_TO_SHARP = {
     'Bb': 'A#'
 }
 
+SHARP_TO_FLAT = {
+    'C#': 'Db',
+    'D#': 'Eb',
+    'F#': 'Gb',
+    'G#': 'Ab',
+    'A#': 'Bb'
+}
 
-def read_lab(lbl_path):
-    """read a .lab mirex formatted file and return a df"""
-
-    return pd.read_csv(lbl_path, delimiter=' ', names=['start', 'end', 'chord'])
+SEMITONE_STEPS = {
+    'b2': 1,
+    '2': 2,
+    'b3': 3,
+    '3': 4,
+    'b4': 4,
+    '4': 5,
+    'b5': 6,
+    '5': 7,
+    'b6': 8,
+    '6': 9,
+    'b7': 9,
+    '7': 10,
+    'b8': 11,
+    '8': 12
+}
 
 
 class AdaptLabels:
@@ -148,17 +167,28 @@ class CovertLab:
     @staticmethod
     def translate_bass(root, bass):
         """Translates bass to actual note based on root"""
+
+        # Get rid of #
+        if root in SHARP_TO_FLAT.keys():
+            root = SHARP_TO_FLAT[root]
+
         shifted_pitches = shift_list(PITCH_CLASS_NAMES, root)
         if not bass.isdigit():
             # if b7 convert to a semitone back
-            bass = int(''.join(i for i in bass if i.isdigit()))
-            return shifted_pitches[int(bass) * 2 - 3]  # (bass-1)*2 - 1(b) because of idx starting from 0
-        return shifted_pitches[int(bass) * 2 - 2]  # (bass-1)*2  because of idx starting from 0
+            bass_int = int(''.join(i for i in bass if i.isdigit()))
+        # if bass in SEMITONE_STEPS.keys():
+        #     return shifted_pitches[SEMITONE_STEPS[bass]]
+            return shifted_pitches[(int(bass_int) * 2 - 3) % 12]  # (bass-1)*2 - 1(b) because of idx starting from 0
+        return shifted_pitches[(int(bass) * 2 - 2) % 12]  # (bass-1)*2  because of idx starting from 0
+        # else:
+        #     return 'skata'
 
 
 if __name__ == "__main__":
-    label_path = "/home/thanos/Documents/Thesis/TheBeatles_lab/01_-_Please_Please_Me/01_-_I_Saw_Her_Standing_There.lab"
-    label = read_lab(label_path)
+    label_path = "/home/thanos/Documents/Thesis/all_labels.csv"
+    labels = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
+    labels = labels.drop_duplicates('chord')
+    # labels = read_lab(label_path)
 
-    converted_test = CovertLab.convert_chordlab_df(label, label_col='chord')
+    converted_test = CovertLab.convert_chordlab_df(labels, label_col='chord')
     print()
