@@ -2,40 +2,6 @@ import pandas as pd
 import numpy as np
 from label_utils import *
 
-PITCH_CLASS_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
-FLAT_TO_SHARP = {
-    'Db': 'C#',
-    'Eb': 'D#',
-    'Gb': 'F#',
-    'Ab': 'G#',
-    'Bb': 'A#'
-}
-
-SHARP_TO_FLAT = {
-    'C#': 'Db',
-    'D#': 'Eb',
-    'F#': 'Gb',
-    'G#': 'Ab',
-    'A#': 'Bb'
-}
-
-SEMITONE_STEPS = {
-    'b2': 1,
-    '2': 2,
-    'b3': 3,
-    '3': 4,
-    'b4': 4,
-    '4': 5,
-    'b5': 6,
-    '5': 7,
-    'b6': 8,
-    '6': 9,
-    'b7': 9,
-    '7': 10,
-    'b8': 11,
-    '8': 12
-}
-
 
 class AdaptLabels:
     def __init__(self, label_path, n_steps):
@@ -129,13 +95,20 @@ class CovertLab:
 
     @staticmethod
     def get_triad(chord):
-        if "maj" in chord or "min" not in chord:
-            triad = 'Major'
+        if "dim" in chord:
+            triad = "dim"
+        elif "aug" in chord:
+            triad = "aug"
+        elif "sus4" in chord:
+            triad = "sus4"
+        elif "sus2" in chord:
+            triad = "sus2"
+        elif "maj" in chord or "min" not in chord:
+            triad = 'maj'
         elif "min" in chord:
-            triad = "Minor"
+            triad = "min"
         else:
             triad = "N"
-        # TODO: include Diminished , Augmented , Sus 2, Sus4
         return triad
 
     @staticmethod
@@ -145,12 +118,16 @@ class CovertLab:
             chord = chord.split("/")[0]
         if 'maj6' in chord:
             return 'maj6'
+        elif 'min6' in chord:
+            return 'maj6'
         elif 'maj7' in chord:
             return 'maj7'
-        elif '7' in chord or '9' in chord:
-            return 'min7'
+        elif 'hdim7' in chord:
+            return 'hdim7'
         elif 'dim7' in chord:
             return 'dim7'
+        elif '7' in chord or '9' in chord:
+            return 'min7'
         else:
             return 'N'
 
@@ -160,7 +137,7 @@ class CovertLab:
         if "/" in chord:
             chord = chord.split("/")[0]
         if '9' in chord:
-            return 'maj9'
+            return '9'
         else:
             return 'N'
 
@@ -168,20 +145,17 @@ class CovertLab:
     def translate_bass(root, bass):
         """Translates bass to actual note based on root"""
 
-        # Get rid of #
+        # Get rid of sharps
         if root in SHARP_TO_FLAT.keys():
             root = SHARP_TO_FLAT[root]
+        if '#' in bass:
+            bass = sharp_to_flat_semi(bass)
 
         shifted_pitches = shift_list(PITCH_CLASS_NAMES, root)
-        # if not bass.isdigit():
-        #     # if b7 convert to a semitone back
-        #     bass_int = int(''.join(i for i in bass if i.isdigit()))
-        if bass in SEMITONE_STEPS.keys():
-            return shifted_pitches[SEMITONE_STEPS[bass]]
-        #     return shifted_pitches[(int(bass_int) * 2 - 3) % 12]  # (bass-1)*2 - 1(b) because of idx starting from 0
-        # return shifted_pitches[(int(bass) * 2 - 2) % 12]  # (bass-1)*2  because of idx starting from 0
-        else:
-            return 'skata'
+
+        if bass not in SEMITONE_STEPS.keys():
+            bass = EQUIVALENTS[bass]
+        return shifted_pitches[SEMITONE_STEPS[bass]]
 
 
 if __name__ == "__main__":
