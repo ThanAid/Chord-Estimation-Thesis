@@ -1,9 +1,9 @@
-# import required modules
-import subprocess
 import argparse
-from pydub import AudioSegment
 import os
+import subprocess
+
 from loguru import logger
+from pydub import AudioSegment
 
 
 def parse_input(args=None):

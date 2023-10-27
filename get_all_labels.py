@@ -1,9 +1,10 @@
 import argparse
-
 import os
-from loguru import logger
-from label_utils import *
 import time
+
+from loguru import logger
+
+from label_utils import *
 
 
 def parse_input(args=None):
