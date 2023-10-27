@@ -156,8 +156,6 @@ class CovertLab:
         # Get rid of sharps
         if root in SHARP_TO_FLAT.keys():
             root = SHARP_TO_FLAT[root]
-        if '#' in bass:
-            bass = sharp_to_flat_semi(bass)
 
         shifted_pitches = shift_list(PITCH_CLASS_NAMES, root)
 
