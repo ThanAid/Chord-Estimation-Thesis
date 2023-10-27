@@ -173,15 +173,15 @@ class CovertLab:
             root = SHARP_TO_FLAT[root]
 
         shifted_pitches = shift_list(PITCH_CLASS_NAMES, root)
-        if not bass.isdigit():
-            # if b7 convert to a semitone back
-            bass_int = int(''.join(i for i in bass if i.isdigit()))
-        # if bass in SEMITONE_STEPS.keys():
-        #     return shifted_pitches[SEMITONE_STEPS[bass]]
-            return shifted_pitches[(int(bass_int) * 2 - 3) % 12]  # (bass-1)*2 - 1(b) because of idx starting from 0
-        return shifted_pitches[(int(bass) * 2 - 2) % 12]  # (bass-1)*2  because of idx starting from 0
-        # else:
-        #     return 'skata'
+        # if not bass.isdigit():
+        #     # if b7 convert to a semitone back
+        #     bass_int = int(''.join(i for i in bass if i.isdigit()))
+        if bass in SEMITONE_STEPS.keys():
+            return shifted_pitches[SEMITONE_STEPS[bass]]
+        #     return shifted_pitches[(int(bass_int) * 2 - 3) % 12]  # (bass-1)*2 - 1(b) because of idx starting from 0
+        # return shifted_pitches[(int(bass) * 2 - 2) % 12]  # (bass-1)*2  because of idx starting from 0
+        else:
+            return 'skata'
 
 
 if __name__ == "__main__":
