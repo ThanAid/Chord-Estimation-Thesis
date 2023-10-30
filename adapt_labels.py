@@ -3,7 +3,7 @@ import time
 import numpy as np
 from loguru import logger
 
-from label_utils import *
+from utils.label_utils import *
 
 
 class AdaptLabels:

@@ -4,7 +4,7 @@ import time
 
 from loguru import logger
 
-from label_utils import *
+from utils.label_utils import *
 
 
 def parse_input(args=None):
