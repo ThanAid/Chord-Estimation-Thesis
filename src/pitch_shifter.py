@@ -1,6 +1,8 @@
 import argparse
 import os
 import time
+from multiprocessing import Pool
+from pathlib import Path
 
 from loguru import logger
 
@@ -21,16 +23,22 @@ def parse_input(args=None):
                         required=True)
     parser.add_argument("-n", "--n_steps", type=int, action="store", metavar="n_steps",
                         required=True)
+    parser.add_argument("-p", "--pool", action="store_true",
+                        required=False)
 
     return parser.parse_args(args)
 
 
 class PitchShifter:
-    def __init__(self, directory, dest_dir, n_steps):
+    def __init__(self, directory, dest_dir, n_steps, pool=None):
         self.direc = directory
         self.dest_dir = dest_dir
         self.n_steps = n_steps
         self.files = None
+        self.pooling = False
+
+        if pool:
+            self.pooling = True
 
         self.get_file_list()
 
@@ -50,14 +58,23 @@ class PitchShifter:
 
     def run_shifter(self):
         """runs the pitch shifter"""
+        if self.pooling:
+            logger.info('Pooling started')
+            with Pool(12) as p:
+                p.map(self.shifter_iter, self.files)
+        else:
+            for file in self.files:
+                self.shifter_iter(file)
 
-        for file in self.files:
-            logger.info(f"Shifting {file}...")
-            #TODO: fix this mess album+song and mkdir album
-            album_song = '/'.join(file.split('/')[-2:])
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            self.load_and_shift(file, self.dest_dir + '/' + album_song, n_steps=self.n_steps)
+    def shifter_iter(self, file):
+        """iterable method for shifting"""
+        logger.info(f"Shifting {file}...")
+        album = file.split('/')[-2]
+        song = file.split('/')[-1]
+        # If folder is non-existent, create it
+        Path(self.dest_dir + '/' + album).mkdir(parents=True, exist_ok=True)
+
+        self.load_and_shift(file, self.dest_dir + '/' + album + '/' + song, n_steps=self.n_steps)
 
 
 if __name__ == "__main__":
