@@ -3,3 +3,5 @@ epektasi -> parsing chords, mia sigxordia na ein pinakas alitheias px [1 0 0 1 0
 organize repo: 
 src
 build -> .sh files
+
+smoothing -> endiaferon to poso tha epireazei ta tlk apotelesmata

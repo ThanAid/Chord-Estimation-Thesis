@@ -25,20 +25,27 @@ def parse_input(args=None):
                         required=True)
     parser.add_argument("-p", "--pool", action="store_true",
                         required=False)
+    parser.add_argument("-no", "--noise", action="store_true",
+                        required=False)
 
     return parser.parse_args(args)
 
 
 class PitchShifter:
-    def __init__(self, directory, dest_dir, n_steps, pool=None):
+    def __init__(self, directory, dest_dir, n_steps, pool=None, noise=None):
         self.direc = directory
         self.dest_dir = dest_dir
         self.n_steps = n_steps
         self.files = None
         self.pooling = False
+        self.noise = False
 
         if pool:
             self.pooling = True
+
+        if noise:
+            self.noise = True
+            logger.info("Adding Gaussian Noise..")
 
         self.get_file_list()
 
@@ -48,12 +55,13 @@ class PitchShifter:
         self.files = [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.direc) for f in filenames if
                       os.path.splitext(f)[1] == '.wav']
 
-    @staticmethod
-    def load_and_shift(file, export_path, n_steps):
+    def load_and_shift(self, file, export_path, n_steps):
         """load wav, pitch shift and export"""
 
         y, sr = load_wav(file, sampling_rate=44100)
         y_shifted = pitch_shift(y, sr=sr, n_steps=n_steps)
+        if self.noise:
+            y_shifted = add_noise(y_shifted)
         export_wav(export_path, y_shifted, sampling_rate=sr)
 
     def run_shifter(self):
