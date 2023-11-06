@@ -48,7 +48,7 @@ class AdaptLabels:
 #         self.triad = None
 
 
-class CovertLab:
+class ConvertLab:
     def __init__(self, label_path, label_col='label', dest=None):
         self.df = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
         self.label_col = label_col
@@ -69,11 +69,11 @@ class CovertLab:
         Output: a DataFrame with added columns
                ('root', 'bass', 'C', 'Db', ..., 'Bb', 'B')
         """
-        self.df['root'] = self.df[self.label_col].apply(lambda i: CovertLab.get_root(i))
-        self.df['bass'] = self.df[self.label_col].apply(lambda i: CovertLab.get_bass(i))
-        self.df['triad'] = self.df[self.label_col].apply(lambda i: CovertLab.get_triad(i))
-        self.df['extension_1'] = self.df[self.label_col].apply(lambda i: CovertLab.get_extension_1(i))
-        self.df['extension_2'] = self.df[self.label_col].apply(lambda i: CovertLab.get_extension_2(i))
+        self.df['root'] = self.df[self.label_col].apply(lambda i: ConvertLab.get_root(i))
+        self.df['bass'] = self.df[self.label_col].apply(lambda i: ConvertLab.get_bass(i))
+        self.df['triad'] = self.df[self.label_col].apply(lambda i: ConvertLab.get_triad(i))
+        self.df['extension_1'] = self.df[self.label_col].apply(lambda i: ConvertLab.get_extension_1(i))
+        self.df['extension_2'] = self.df[self.label_col].apply(lambda i: ConvertLab.get_extension_2(i))
 
     def export_to_csv(self):
         self.df.to_csv(self.dest, sep=' ', encoding='utf-8', index=False)
@@ -93,10 +93,10 @@ class CovertLab:
 
     @staticmethod
     def get_bass(chord):
-        root = CovertLab.get_root(chord)
+        root = ConvertLab.get_root(chord)
         if "/" in chord:
             bass = chord.split("/")[1]
-            bass = CovertLab.translate_bass(root, bass)
+            bass = ConvertLab.translate_bass(root, bass)
         else:
             bass = root
         return bass
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     # labels = labels.drop_duplicates('chord')
     # labels = read_lab(label_path)
 
-    converted_test = CovertLab(label_path, label_col='chord', dest=dest)
+    converted_test = ConvertLab(label_path, label_col='chord', dest=dest)
     time_elapsed = time.time() - start
     logger.info(f"Finished, Found {len(converted_test.df)} chords.")
     logger.info(f"Time elapsed: {time_elapsed:.2f} seconds.")

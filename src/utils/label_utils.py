@@ -88,7 +88,7 @@ def create_plots_for_columns(data):
         if column != 'index':
             ax = axes[i]
             x_data = data[column].value_counts()
-            if len(x_data)>30:
+            if len(x_data) > 30:
                 x_data = x_data[:30]
             x_data.plot(kind='bar', ax=ax)
             ax.set_title(f'Distribution of {column}')
