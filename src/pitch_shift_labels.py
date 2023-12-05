@@ -75,7 +75,7 @@ class PitchShifterLab:
         df = read_lab(file)
         # df = pd.read_csv(file, delimiter=' ')
         df_shifted = self.pitch_shift_lab(df)
-        df_shifted.to_csv(export_path, sep=' ', encoding='utf-8', index=False)
+        df_shifted.to_csv(export_path, sep=' ', encoding='utf-8', index=False, header=False)
 
     def pitch_shift_csv(self, df):
         """Shifts using the converted form of chords (split into features)"""

@@ -31,3 +31,9 @@ def pitch_shift(y, sr=44100, n_steps=1):
     y_shifted = librosa.effects.pitch_shift(y, sr=sr, n_steps=n_steps)
     return y_shifted
 
+
+def stf_transform(audio, hop_size=4410, win_size=8192):
+    """Short-Time Fourier Transform (STFT) with specified parameters"""
+
+    stft = librosa.stft(audio, hop_length=hop_size, n_fft=win_size)
+    return stft

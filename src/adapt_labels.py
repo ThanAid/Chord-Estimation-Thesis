@@ -18,7 +18,7 @@ class AdaptLabels:
     def get_duration(self):
         """returns duration of track"""
 
-        return self.time_labels['end'].iloc[-1]
+        return float(self.time_labels['end'].iloc[-1])
 
     def get_timestep(self):
         """returns the duration of each time step"""
