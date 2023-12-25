@@ -32,8 +32,24 @@ def pitch_shift(y, sr=44100, n_steps=1):
     return y_shifted
 
 
-def stf_transform(audio, hop_size=4410, win_size=8192):
-    """Short-Time Fourier Transform (STFT) with specified parameters"""
+def stf_transform(audio, hop_size=4410, win_size=8192, q=True):
+    """
+    Short-Time Fourier Transform (STFT) with specified parameters
 
-    stft = librosa.stft(audio, hop_length=hop_size, n_fft=win_size)
-    return stft
+    :param audio: audio file in a waveform format
+    :param hop_size:
+    :param win_size:
+    :param q: if True performs Constant Q Transform to calculate Pitch Class Profile (PCP), normalized
+    :return:
+    """
+
+    if q:
+        # Harmonic content extraction
+        y_harmonic, y_percussive = librosa.effects.hpss(audio)
+
+        # use Constant Q Transform to calculate Pitch Class Profile (PCP), normalized
+        chromagram = librosa.feature.chroma_cqt(y=y_harmonic, sr=44100, hop_length=hop_size)
+        return chromagram.T
+    else:
+        stft = librosa.stft(audio, hop_length=hop_size, n_fft=win_size)
+        return stft

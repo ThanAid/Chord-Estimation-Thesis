@@ -7,10 +7,15 @@ from utils.label_utils import *
 
 
 class AdaptLabels:
-    def __init__(self, label_path, n_steps):
+    def __init__(self, label_path, n_steps, duration=None):
         self.time_labels = read_lab(label_path)
         self.n_steps = n_steps
-        self.duration = self.get_duration()
+
+        # If duration of the track is given we use that, else we calculate it
+        if duration:
+            self.duration = duration
+        else:
+            self.duration = self.get_duration()
         self.timestep = self.get_timestep()
         self.timestamps = np.linspace(0, self.duration, num=n_steps)
         self.labels = self.adapt_labels()
@@ -31,12 +36,17 @@ class AdaptLabels:
         i = 0
         labels = []
         for timestamp in self.timestamps:
-            if timestamp <= self.time_labels["end"][i]:
-                labels.append((timestamp, self.time_labels["chord"][i]))
-            else:
-                i += 1
-                labels.append((timestamp, self.time_labels["chord"][i]))
+            try:
+                if timestamp <= self.time_labels["end"][i]:
+                    labels.append((timestamp, self.time_labels["chord"][i]))
+                else:
+                    i += 1
+                    labels.append((timestamp, self.time_labels["chord"][i]))
 
+            # catch key error if there is extra frames in the audiofile (1-2)
+            # and fill them with N - sync audiofile to labels
+            except KeyError:
+                labels.append((timestamp, 'N'))
         return labels
 
 
@@ -168,14 +178,14 @@ if __name__ == "__main__":
     start = time.time()
     logger.info("Starting up..")
 
-    label_path = "/home/thanos/Documents/Thesis/all_labels.csv"
-    dest = "/home/thanos/Documents/Thesis/all_labels_converted.csv"
+    label_path = '/home/thanos/Documents/Thesis/labels/TheBeatles_shifted/shifted_-1/09_-_Magical_Mystery_Tour/02_-_The_Fool_On_The_Hill.lab'
+    # dest = "/home/thanos/Documents/Thesis/all_labels_converted.csv"
     # labels = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
     # labels = labels.drop_duplicates('chord')
     # labels = read_lab(label_path)
 
-    converted_test = ConvertLab(label_path, label_col='chord', dest=dest)
+    adapted_labs = AdaptLabels(label_path, 1803, duration=180.24489795918367)
     time_elapsed = time.time() - start
-    logger.info(f"Finished, Found {len(converted_test.df)} chords.")
+    # logger.info(f"Finished, Found {len(converted_test.df)} chords.")
     logger.info(f"Time elapsed: {time_elapsed:.2f} seconds.")
 
