@@ -1,6 +1,7 @@
 import numpy as np
 import librosa
 import soundfile as sf
+import pandas as pd
 
 
 def add_noise(y):
@@ -53,3 +54,10 @@ def stf_transform(audio, hop_size=4410, win_size=8192, q=True):
     else:
         stft = librosa.stft(audio, hop_length=hop_size, n_fft=win_size)
         return stft
+
+
+def read_transformed_audio(audio_path):
+    """Reads csv containing fourier of audio"""
+
+    audio = pd.read_csv(audio_path, header=None, sep=',')
+    return audio

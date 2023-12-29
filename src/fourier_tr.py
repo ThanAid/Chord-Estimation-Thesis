@@ -1,4 +1,6 @@
 import argparse
+import os
+
 import pandas as pd
 from multiprocessing import Pool
 import time
@@ -74,17 +76,24 @@ class FourierTransf:
 
         logger.info(f"Transforming:\n{track_path}")
 
-        ft, sr = self.transf_audio(audio_path=audio_path, q=True)
-        adapted_labels = self.tansf_labels(label_path=label_path, stft_length=ft.shape[0])
-        # TODO: shape[0] wont work for stft i think (Needs check)
-
         trns_audio_path = audio_path.split('.wav')[0] + '.csv'
         trns_label_path = label_path[:-4] + "_TRNS.csv"
 
-        logger.info(f"Exporting {trns_audio_path}.\n")
+        if os.path.exists(trns_audio_path):
+            logger.info(f"Skipping {trns_audio_path} because it already exists...")
+        else:
+            ft, sr = self.transf_audio(audio_path=audio_path, q=True)
+            logger.info(f"Exporting {trns_audio_path}.\n")
 
-        np.savetxt(trns_audio_path, ft, delimiter=",")
-        pd.DataFrame(adapted_labels.labels).to_csv(trns_label_path, sep=' ', encoding='utf-8', index=False, header=False)
+            np.savetxt(trns_audio_path, ft, delimiter=",")
+
+        if os.path.exists(trns_label_path):
+            logger.info(f"Skipping {trns_label_path} because it already exists...")
+        else:
+            adapted_labels = self.tansf_labels(label_path=label_path, stft_length=ft.shape[0])
+            # TODO: shape[0] wont work for stft i think (Needs check)
+            pd.DataFrame(adapted_labels.labels).to_csv(trns_label_path, sep=' ', encoding='utf-8', index=False,
+                                                       header=False)
 
         # New row data to append
         new_row = {'audio_csv': trns_audio_path, 'labels': trns_label_path}
@@ -104,6 +113,7 @@ class FourierTransf:
                 self.transform_and_export(track_path)
 
         # Store the paths of transformed dataset to txt.
+        logger.info("Saving paths to txt...")
         self.trsn_paths_df.to_csv(self.dest_txt, header=None, index=None, sep=' ')
 
 
