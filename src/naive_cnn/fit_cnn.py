@@ -20,18 +20,34 @@ def main(dataset_paths):
     :return:
     """
 
-    df = read_and_concatenate_files(dataset_paths)
+    # Split dataset by tracks
+    df_train, df_test = split_dataset(dataset_paths, test_size=0.2, random_state=42)
+    df_train = read_and_concatenate_files(df_train, dataframe=True)
+    df_test = read_and_concatenate_files(df_test, dataframe=True)
 
     # Extract features and labels
-    X = df.drop('labels', axis=1).values
-    y = df['labels'].values
+    X_train = df_train.drop('labels', axis=1).values
+    X_test = df_test.drop('labels', axis=1).values
+    y_train = df_train['labels'].values
+    y_test = df_test['labels'].values
 
-    # Encode labels using LabelEncoder
+    # Initialize LabelEncoder
     label_encoder = LabelEncoder()
-    y_encoded = label_encoder.fit_transform(y)
+
+    # Fit and transform all the labels
+    y_encoded = label_encoder.fit_transform(np.concatenate((y_test, y_train)))
+
+    # Transform the train and test labels using the same encoder
+    y_train_encoded = label_encoder.transform(y_train)
+    y_test_encoded = label_encoder.transform(y_test)
+
+    # Now y_train_encoded and y_test_encoded contain the encoded labels
+
+    # To get the mapping from original labels to encoded labels, you can use:
+    label_mapping = dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))
 
     # Split the dataset into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
 
     # Normalize the input features if needed
     # Replace this with your actual normalization logic if required
@@ -53,14 +69,14 @@ def main(dataset_paths):
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
     # Train the model
-    model.fit(X_train, y_train, epochs=1, batch_size=32, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train_encoded, epochs=10, batch_size=32, validation_data=(X_test, y_test_encoded))
 
     # Evaluate the model on the test set
-    test_loss, test_accuracy = model.evaluate(X_test, y_test)
+    test_loss, test_accuracy = model.evaluate(X_test, y_test_encoded)
     print(f'Test Accuracy: {test_accuracy * 100:.2f}%')
 
     # Save the model if needed
-    model.save('naive_cnn.h5')
+    model.save('naive_cnn_v2.h5')
 
 
 if __name__ == "__main__":

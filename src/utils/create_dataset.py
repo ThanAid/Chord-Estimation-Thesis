@@ -7,14 +7,18 @@ import sys
 
 sys.path.append("../src")
 
+from sklearn.model_selection import train_test_split
 from src.utils.audio_utils import *
 import time
 from loguru import logger
 
 
-def read_and_concatenate_files(file_path):
+def read_and_concatenate_files(file_path, dataframe=False):
     # Read the file into a DataFrame
-    df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+    if not dataframe:
+        df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+    else:
+        df = file_path
 
     # Create empty DataFrames to store the concatenated data
     audio_data = pd.DataFrame()
@@ -38,6 +42,20 @@ def read_and_concatenate_files(file_path):
     result_df = audio_data
 
     return result_df
+
+
+def split_dataset(file_path, test_size=0.2, random_state=42):
+    """
+
+    :param file_path:
+    :param test_size:
+    :param random_state:
+    :return:
+    """
+    df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+    df_train, df_test = train_test_split(df, test_size=test_size, random_state=random_state)
+
+    return df_train, df_test
 
 
 if __name__ == "__main__":
