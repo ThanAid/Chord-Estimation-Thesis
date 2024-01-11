@@ -3,7 +3,7 @@ import time
 import numpy as np
 from loguru import logger
 
-from utils.label_utils import *
+from src.utils.label_utils import *
 
 
 class AdaptLabels:
@@ -59,8 +59,19 @@ class AdaptLabels:
 
 
 class ConvertLab:
-    def __init__(self, label_path, label_col='label', dest=None):
-        self.df = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
+    def __init__(self, label_path, label_col='label', dest=None, is_df=False):
+        """
+
+        :param label_path:
+        :param label_col:
+        :param dest:
+        :param is_df: if False then label_path is a path, if True then label_path is the actual dataframe
+        """
+        if not is_df:
+            self.df = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
+        else:
+            self.df = label_path
+
         self.label_col = label_col
         self.dest = dest
 
@@ -99,6 +110,11 @@ class ConvertLab:
             root = chord.split(":")[0]
         else:
             root = chord
+
+        # Get rid of sharps
+        if root in SHARP_TO_FLAT.keys():
+            root = SHARP_TO_FLAT[root]
+
         return root
 
     @staticmethod
