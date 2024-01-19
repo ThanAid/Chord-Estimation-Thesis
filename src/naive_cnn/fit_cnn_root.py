@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import time
 from loguru import logger
+from tensorflow.keras.optimizers import Adam
+import gc
 
 import sys
 
@@ -22,8 +24,11 @@ def main(dataset_paths):
     """
 
     # Split dataset by tracks
+    logger.info("Splitting dataset...")
     df_train, df_test = split_dataset(dataset_paths, test_size=0.2, random_state=42)
+    logger.info("Reading and concatenating train dataset...")
     df_train = read_and_concatenate_files(df_train, dataframe=True)
+    logger.info("Reading and concatenating test dataset...")
     df_test = read_and_concatenate_files(df_test, dataframe=True)
 
     # Extract features and labels
@@ -34,6 +39,13 @@ def main(dataset_paths):
 
     y_test_features = ConvertLab(df_test, label_col='labels', dest=None, is_df=True)
     y_test = y_test_features.df['root'].values
+
+    logger.info("Deleting Dataframes from memory..")
+    del [[df_train, df_test]]
+    gc.collect()
+    df_train = pd.DataFrame()
+    df_test = pd.DataFrame()
+    logger.info("Cleared memory!")
 
     # Initialize LabelEncoder
     label_encoder = LabelEncoder()
@@ -62,25 +74,37 @@ def main(dataset_paths):
 
     # Define the CNN model
     model = tf.keras.Sequential([
-        tf.keras.layers.Conv1D(32, kernel_size=3, activation='relu', input_shape=(X_train.shape[1], 1)),
+        tf.keras.layers.Conv1D(16, kernel_size=3, activation='relu', padding="same", input_shape=(X_train.shape[1], 1)),
+        tf.keras.layers.Conv1D(16, kernel_size=3, padding="same", activation='relu'),
         tf.keras.layers.MaxPooling1D(pool_size=2),
+        tf.keras.layers.Dropout(0.4),
+        tf.keras.layers.Conv1D(32, kernel_size=3, padding="same", activation='relu'),
+        tf.keras.layers.Conv1D(32, kernel_size=3, padding="same", activation='relu'),
+        tf.keras.layers.MaxPooling1D(pool_size=2),
+        tf.keras.layers.Dropout(0.4),
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dense(len(np.unique(y_encoded)), activation='softmax')  # Adjust the number of output units
     ])
 
+    # Print shapes using print statements
+    for layer in model.layers:
+        print(layer.name, layer.output_shape)
+
+    optimizer = Adam()
+
     # Compile the model
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
     # Train the model
-    model.fit(X_train, y_train_encoded, epochs=10, batch_size=32, validation_data=(X_test, y_test_encoded))
+    model.fit(X_train, y_train_encoded, epochs=30, batch_size=64, validation_data=(X_test, y_test_encoded))
 
     # Evaluate the model on the test set
     test_loss, test_accuracy = model.evaluate(X_test, y_test_encoded)
     print(f'Test Accuracy: {test_accuracy * 100:.2f}%')
 
     # Save the model if needed
-    model.save('naive_cnn_root.h5')
+    model.save('CQT_cnn_root.h5')
 
 
 if __name__ == "__main__":
@@ -88,6 +112,7 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     dataset_path = '/home/thanos/Documents/Thesis/dataset_paths_transformed.txt'
+    dataset_path = '/home/thanos/Documents/Thesis/Dataset_paths/dataset_paths_CQT.txt'
 
     main(dataset_path)
 

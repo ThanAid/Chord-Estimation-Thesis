@@ -40,7 +40,7 @@ def stf_transform(audio, hop_size=4410, win_size=8192, q=True):
     :param audio: audio file in a waveform format
     :param hop_size:
     :param win_size:
-    :param q: if True performs Constant Q Transform to calculate Pitch Class Profile (PCP), normalized
+    :param q: if True performs Constant Q Transform chromagram to calculate Pitch Class Profile (PCP), normalized
     :return:
     """
 
@@ -54,6 +54,29 @@ def stf_transform(audio, hop_size=4410, win_size=8192, q=True):
     else:
         stft = librosa.stft(audio, hop_length=hop_size, n_fft=win_size)
         return stft
+
+
+def cqt_spectogram(audio, sample_rate, nbins, bins_per_octave, hop_length):
+    """
+    Performs CQT transform to an audio file
+
+    :param audio: audio file in a waveform format
+    :param sample_rate:
+    :param nbins:
+    :param bins_per_octave:
+    :param hop_length:
+    :return:
+    """
+
+    track_time = librosa.get_duration(y=audio, sr=sample_rate)
+    spectrogram = librosa.cqt(audio, sr=sample_rate, n_bins=nbins, bins_per_octave=bins_per_octave,
+                              hop_length=hop_length)
+
+    frames = list(range(0, spectrogram.shape[1]))
+    times = librosa.frames_to_time(frames, sr=sample_rate, hop_length=hop_length)
+
+    timeseries = librosa.amplitude_to_db(abs(spectrogram), ref=np.max).T
+    return timeseries, times, track_time
 
 
 def read_transformed_audio(audio_path):

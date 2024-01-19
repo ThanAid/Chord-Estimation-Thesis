@@ -1,3 +1,4 @@
 .idea
 __pycache__/
 notebooks/.ipynb_checkpoints
+src/deep_cnn/data_cache
