@@ -82,5 +82,5 @@ def cqt_spectogram(audio, sample_rate, nbins, bins_per_octave, hop_length):
 def read_transformed_audio(audio_path):
     """Reads csv containing fourier of audio"""
 
-    audio = pd.read_csv(audio_path, header=None, sep=',')
+    audio = pd.read_csv(audio_path, header=None, sep=',', low_memory=True)
     return audio

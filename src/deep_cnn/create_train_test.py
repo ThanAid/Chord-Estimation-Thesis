@@ -19,14 +19,17 @@ def main(dataset_paths):
     # Split dataset by tracks
     logger.info("Splitting dataset...")
     df_train, df_test = split_dataset(dataset_paths, test_size=0.2, random_state=42)
+
     logger.info("Reading and concatenating train dataset...")
-    df_train = read_and_concatenate_files(df_train, dataframe=True)
+    df_train = read_and_concatenate_files(df_train, dataframe=True, verbose=100)
+
     logger.info("Reading and concatenating test dataset...")
-    df_test = read_and_concatenate_files(df_test, dataframe=True)
+    df_test = read_and_concatenate_files(df_test, dataframe=True, verbose=100)
 
     # Extract features and labels
     X_train = df_train.drop('labels', axis=1).values
     X_test = df_test.drop('labels', axis=1).values
+
     y_train_features = ConvertLab(df_train, label_col='labels', dest=None, is_df=True)
     y_train = y_train_features.df['root'].values
 
@@ -70,5 +73,5 @@ if __name__ == "__main__":
     main(dataset_path)
 
     time_elapsed = time.time() - start
-    # logger.info(f"Finished, Found {len(converted_test.df)} chords.")
+
     logger.info(f"Time elapsed: {time_elapsed:.2f} seconds.")

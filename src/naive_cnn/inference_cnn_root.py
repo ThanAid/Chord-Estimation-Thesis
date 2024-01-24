@@ -9,7 +9,6 @@ from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
 import sys
 
 sys.path.append("../src")
@@ -27,7 +26,8 @@ def main(dataset_paths):
 
     # load the model if needed
     logger.info("Loading the model..")
-    model = tf.keras.models.load_model('/home/thanos/Documents/Thesis/Chord-Estimation-Thesis/src/naive_cnn/naive_cnn_v2.h5')
+    model = tf.keras.models.load_model(
+        '/home/thanos/Documents/Thesis/Chord-Estimation-Thesis/src/naive_cnn/naive_cnn_v2.h5')
 
     # Split dataset by tracks
     df_train, df_test = split_dataset(dataset_paths, test_size=0.2, random_state=42)
@@ -73,9 +73,7 @@ def main(dataset_paths):
     print(f'Test Accuracy: {test_accuracy * 100:.2f}%')
 
     y_pred = model.predict(X_test)
-    # TODO: Need to apply softmax
     y_pred_id = np.argmax(y_pred, axis=1)
-
 
     # Calculate confusion matrix
     cm = confusion_matrix(y_test_encoded, y_pred_id)

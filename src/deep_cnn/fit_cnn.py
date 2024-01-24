@@ -15,6 +15,7 @@ sys.path.append("../src")
 
 from src.utils.create_dataset import *
 from src.adapt_labels import *
+from src.utils.train_utils import *
 
 
 def main(dataset_file):
@@ -24,17 +25,21 @@ def main(dataset_file):
     :return:
     """
 
-    X_train = np.loadtxt(f"{dataset_file}/X_train_debug.csv", delimiter=",")
-    X_test = np.loadtxt(f"{dataset_file}/X_test_debug.csv", delimiter=",")
-    y_train_encoded = np.loadtxt(f"{dataset_file}/y_train_encoded_debug.csv", delimiter=",").astype(int)
-    y_test_encoded = np.loadtxt(f"{dataset_file}/y_test_encoded_debug.csv", delimiter=",").astype(int)
+    X_train = np.loadtxt(f"{dataset_file}/X_train.csv", delimiter=",")
+    X_test = np.loadtxt(f"{dataset_file}/X_test.csv", delimiter=",")
+    y_train_encoded = np.loadtxt(f"{dataset_file}/y_train_encoded.csv", delimiter=",").astype(int)
+    y_test_encoded = np.loadtxt(f"{dataset_file}/y_test_encoded.csv", delimiter=",").astype(int)
 
-    with open(f"{dataset_file}/label_mapping_debug.pickle", 'rb') as lm:
+    with open(f"{dataset_file}/label_mapping.pickle", 'rb') as lm:
         label_mapping = pickle.load(lm)
 
     # Reshape the features for CNN input
     X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
+    # Using generators to deal with running out of memory on GPU
+    train_gen = DataGenerator(X_train, y_train_encoded, 32)
+    test_gen = DataGenerator(X_test, y_test_encoded, 32)
 
     # Define the CNN model
     model = tf.keras.Sequential([
@@ -70,14 +75,14 @@ def main(dataset_file):
     model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
     # Train the model
-    model.fit(X_train, y_train_encoded, epochs=30, batch_size=64, validation_data=(X_test, y_test_encoded))
+    model.fit(train_gen, epochs=10, validation_data=test_gen)
 
     # Evaluate the model on the test set
     test_loss, test_accuracy = model.evaluate(X_test, y_test_encoded)
     print(f'Test Accuracy: {test_accuracy * 100:.2f}%')
 
     # Save the model if needed
-    model.save('models/CQT_cnn_root_debug.h5')
+    model.save('models/CQT_cnn_root_10.h5')
 
 
 if __name__ == "__main__":

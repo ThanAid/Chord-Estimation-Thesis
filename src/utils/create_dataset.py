@@ -13,19 +13,21 @@ import time
 from loguru import logger
 
 
-def read_and_concatenate_files(file_path, dataframe=False):
+def read_and_concatenate_files(file_path, dataframe=False, verbose=0):
     # Read the file into a DataFrame
     if not dataframe:
-        df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+        df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None, low_memory=False)
     else:
         df = file_path
 
     # Create empty DataFrames to store the concatenated data
-    audio_data = pd.DataFrame()
-    label_data = pd.DataFrame()
+    # audio_data = pd.DataFrame()
+    audio_data = []
+    # label_data = pd.DataFrame()
+    label_data =[]
 
     # Iterate through rows and concatenate audio and label data
-    for index, row in df.iterrows():
+    for i, (index, row) in enumerate(df.iterrows()):
         audio_path = row['wav']
         label_path = row['labels']
 
@@ -33,15 +35,22 @@ def read_and_concatenate_files(file_path, dataframe=False):
         audio_df = read_transformed_audio(audio_path)
         label_df = pd.read_csv(label_path, header=None, sep=' ')
 
-        # Concatenate data to the respective DataFrames
-        audio_data = pd.concat([audio_data, audio_df], ignore_index=True)
-        label_data = pd.concat([label_data, label_df], ignore_index=True)
+        # Using lists instead of DataFrames and the concat them at once in the end is way faster
+        audio_data.append(audio_df)
+        label_data.append(label_df)
+
+        if verbose != 0:
+            if i % verbose == 0:
+                logger.info(f"{i} iterations completed.")
+
+    # Concat the lists into dataframes
+    audio_data_df = pd.concat(audio_data, axis=0, ignore_index=True)
+    label_data_df = pd.concat(label_data, axis=0, ignore_index=True)
 
     # Concatenate the two DataFrames horizontally
-    audio_data['labels'] = label_data[1]
-    result_df = audio_data
+    audio_data_df['labels'] = label_data_df[1]
 
-    return result_df
+    return audio_data_df
 
 
 def split_dataset(file_path, test_size=0.2, random_state=42):
