@@ -1,6 +1,9 @@
 import pickle
 import sys
+from pathlib import Path
+import gc
 
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 sys.path.append("../src")
@@ -11,8 +14,10 @@ from src.adapt_labels import *
 
 def main(dataset_paths):
     """
+    Creates X_train, X_test, y_train, y_test csvs and stores them in the data_cache folder
+    Important: If you want to use fit_cnn.py etc you first need to run this script to create the data_cache
 
-    :param dataset_paths:
+    :param dataset_paths: path of a txt file that contains the paths of the converted audio-labels pairs
     :return:
     """
 
@@ -36,6 +41,7 @@ def main(dataset_paths):
     y_test_features = ConvertLab(df_test, label_col='labels', dest=None, is_df=True)
     y_test = y_test_features.df['root'].values
 
+    logger.info("Encoding root labels")
     # Initialize LabelEncoder
     label_encoder = LabelEncoder()
 
@@ -52,10 +58,17 @@ def main(dataset_paths):
     label_mapping = dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))
 
     logger.info("Saving Dataset...")
+    # If folder is non-existent, create it
+    Path("data_cache").mkdir(parents=True, exist_ok=True)
+
     np.savetxt("data_cache/X_train.csv", X_train, delimiter=",")
     np.savetxt("data_cache/X_test.csv", X_test, delimiter=",")
-    np.savetxt("data_cache/y_train_encoded.csv", y_train_encoded, delimiter=",")
-    np.savetxt("data_cache/y_test_encoded.csv", y_test_encoded, delimiter=",")
+    np.savetxt("data_cache/y_train_encoded_root.csv", y_train_encoded, delimiter=",")
+    np.savetxt("data_cache/y_test_encoded_root.csv", y_test_encoded, delimiter=",")
+
+    # Keep labels before encoding too
+    df_train['labels'].to_csv("data_cache/y_train.csv", index=False)
+    df_test['labels'].to_csv("data_cache/y_test.csv", index=False)
 
     with open('data_cache/label_mapping.pickle', 'wb') as handle:
         pickle.dump(label_mapping, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -64,6 +77,9 @@ def main(dataset_paths):
 
 
 if __name__ == "__main__":
+
+    gc.collect()
+
     start = time.time()
     logger.info("Starting up..")
 

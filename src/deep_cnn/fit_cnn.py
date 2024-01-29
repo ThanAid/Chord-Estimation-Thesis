@@ -1,19 +1,10 @@
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-import numpy as np
-import pandas as pd
-import time
-from loguru import logger
-from tensorflow.keras.optimizers import Adam
-import gc
-
-import sys
 import pickle
+import sys
+
+from tensorflow.keras.optimizers import Adam
 
 sys.path.append("../src")
 
-from src.utils.create_dataset import *
 from src.adapt_labels import *
 from src.utils.train_utils import *
 
@@ -27,8 +18,8 @@ def main(dataset_file):
 
     X_train = np.loadtxt(f"{dataset_file}/X_train.csv", delimiter=",")
     X_test = np.loadtxt(f"{dataset_file}/X_test.csv", delimiter=",")
-    y_train_encoded = np.loadtxt(f"{dataset_file}/y_train_encoded.csv", delimiter=",").astype(int)
-    y_test_encoded = np.loadtxt(f"{dataset_file}/y_test_encoded.csv", delimiter=",").astype(int)
+    y_train_encoded = np.loadtxt(f"{dataset_file}/y_train_encoded_root.csv", delimiter=",").astype(int)
+    y_test_encoded = np.loadtxt(f"{dataset_file}/y_test_encoded_root.csv", delimiter=",").astype(int)
 
     with open(f"{dataset_file}/label_mapping.pickle", 'rb') as lm:
         label_mapping = pickle.load(lm)

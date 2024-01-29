@@ -61,10 +61,11 @@ class AdaptLabels:
 class ConvertLab:
     def __init__(self, label_path, label_col='label', dest=None, is_df=False):
         """
+        Extracts label features like root, bass etc.
 
-        :param label_path:
-        :param label_col:
-        :param dest:
+        :param label_path: the paths of the labels
+        :param label_col: column name that contains the labels
+        :param dest: if given then it exports to csv
         :param is_df: if False then label_path is a path, if True then label_path is the actual dataframe
         """
         if not is_df:
