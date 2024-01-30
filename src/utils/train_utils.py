@@ -4,6 +4,11 @@ import seaborn as sns
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from tensorflow.keras.utils import Sequence
+import pandas as pd
+import tqdm
+
+from src.utils.audio_utils import *
+from src.adapt_labels import *
 
 
 class DataGenerator(Sequence):
@@ -79,3 +84,155 @@ def plot_cm(model, X_test, y_test, label_mapping):
     plt.ylabel("Actual")
     plt.title("Confusion Matrix")
     plt.show()
+
+
+class DataChunking:
+    """
+    Creates chunks using the data given in order to have 2-d data chunks.
+    """
+
+    def __init__(self, paths_txt, dest_file, chunk_size, label_col='root', dataframe=False, verbose=200):
+        """
+
+        :param paths_txt: txt or dataframe containing paths, if dataframe the dataframe must be set True
+        :param dest_file: dest file path to save the data
+        :param chunk_size: (int) size for each chunk
+        :param label_col: the label of the column wanted to predict, for example 'root' or 'bass'
+        :param dataframe: if True then paths_txt is already a dataframe, if False it is a txt and needs to be read
+        """
+        if not dataframe:
+            self.paths_df = pd.read_csv(paths_txt, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None,
+                                        low_memory=False)
+        else:
+            self.paths_df = paths_txt
+        self.dest_file = dest_file
+        self.pooling = False
+        self.trsn_paths_df = pd.DataFrame(columns=['audio_csv', 'labels'])
+        self.label_col = label_col
+
+        self.chunk_size = chunk_size
+        self.verbose = verbose
+
+        # The following will be initialized at the first iteration
+        self.input_features = None
+        self.label_col_size = None  # if OHE is used more than a column needed for labels
+
+        self.X, self.y = None, None
+        self.initialized = False
+
+    def init_arrays(self):
+        """
+        Initialize X_train, y_train, X_test, y_test
+
+        :return:
+        """
+        self.X = np.zeros((1, self.chunk_size, self.input_features))  # num of frequencies
+        self.y = np.zeros((1, self.chunk_size, self.label_col_size))
+        # TODO: Change to (1, chunk_size, 14) if use onehotencoder
+
+        self.initialized = True
+        return self
+
+    def read_data(self, row):
+        audio_path = row['wav']
+        label_path = row['labels']
+
+        # Assuming you have a function to read audio and label data, replace the placeholders below
+        timeseries = read_transformed_audio(audio_path).to_numpy()
+
+        # Read label column
+        label_df = pd.read_csv(label_path, header=None, sep=' ')
+        # Extract features from chord
+        y_train_features = ConvertLab(label_df, label_col=1, dest=None, is_df=True)
+        annotations = y_train_features.df[self.label_col].values.T
+
+        return timeseries, annotations
+
+    def chunkify(self):
+        """
+        Reads data creates chuncks and appends the data to self.X_train etc...
+
+        :return:
+        """
+        logger.info("Started Chunking...")
+        for i, (index, row) in enumerate(self.paths_df.iterrows()):
+            # Read row
+            timeseries, annotations = self.read_data(row)
+
+            # The first iter, data is initialized
+            if not self.initialized:
+                self.input_features = timeseries.shape[1]
+                try:
+                    self.label_col_size = annotations.shape[1]
+                except IndexError:
+                    # In this case there is only one column
+                    self.label_col_size = 1
+
+                # Initialize arrays for data
+                self.init_arrays()
+
+            timestep = 0
+            # size of the current track
+            chunks = len(timeseries)
+
+            # slice and stack train
+            while timestep < chunks:
+                if (chunks - timestep) > self.chunk_size:
+                    # X side
+                    batch_x = np.resize(timeseries[timestep:timestep + self.chunk_size, :],
+                                        (1, self.chunk_size, self.input_features))  # num of frequencies
+                    self.X = np.append(self.X, batch_x, axis=0)
+
+                    # y side
+                    batch_y = np.resize(annotations[timestep:timestep + self.chunk_size],
+                                        (1, self.chunk_size, 1))
+                    # TODO: Change to (1, chunk_size, 14) if use OHE
+                    self.y = np.append(self.y, batch_y, axis=0)
+
+                # If there is no enough row left for a whole chunk then we pad
+                else:
+                    batch_x = timeseries[timestep:, :]
+                    batch_y = annotations[timestep:]
+                    for step in range(0, self.chunk_size + timestep - chunks):
+                        batch_x = np.vstack((batch_x, np.zeros((1, self.input_features))))  # fill with zeros
+                        batch_y = np.append(batch_y, 'N')  # Fill with 'N'
+
+                    self.X = np.append(self.X, np.array([batch_x]), axis=0)
+                    batch_y = np.resize(batch_y, (1, self.chunk_size, 1))
+                    self.y = np.append(self.y, batch_y, axis=0)
+
+                timestep += self.chunk_size
+
+            if self.verbose != 0:
+                if i % self.verbose == 0:
+                    logger.info(f"{i} iterations completed.")
+
+        return self
+
+    def delete_first_chunk(self):
+        """
+        First chunks are zero from the initialization, so they need to be deleted.
+
+        :return:
+        """
+        self.X = np.delete(self.X, 0, 0)
+
+        self.y = np.delete(self.y, 0, 0)
+
+        return self
+
+    def get_data(self):
+        """
+
+        :return: X and y data (numpy format)
+        """
+
+        return self.X, self.y
+
+    def run_chunkify(self):
+        """
+        Runs the pipe
+        :return:
+        """
+        self.chunkify().delete_first_chunk()
+        return self

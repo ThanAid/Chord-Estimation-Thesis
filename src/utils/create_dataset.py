@@ -20,11 +20,9 @@ def read_and_concatenate_files(file_path, dataframe=False, verbose=0):
     else:
         df = file_path
 
-    # Create empty DataFrames to store the concatenated data
-    # audio_data = pd.DataFrame()
+    # Create empty lists (Faster than DataFrames) to store the concatenated data
     audio_data = []
-    # label_data = pd.DataFrame()
-    label_data =[]
+    label_data = []
 
     # Iterate through rows and concatenate audio and label data
     for i, (index, row) in enumerate(df.iterrows()):
