@@ -4,7 +4,7 @@ from pathlib import Path
 import gc
 
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 sys.path.append("../src")
 
@@ -25,22 +25,27 @@ def main(dataset_paths):
     logger.info("Splitting dataset...")
     df_train, df_test = split_dataset(dataset_paths, test_size=0.2, random_state=42)
 
+    logger.info("Init the One hot encoder..")
+    encoder = OneHotEncoder(categories='auto')
+    encoder.fit(np.array(list(range(0, 13))).reshape(-1, 1))
+
     logger.info("Reading and chunking train dataset...")
 
-    X_train, y_train = (DataChunking(df_train, dest_file='', chunk_size=100, label_col='root', dataframe=True)
+    X_train, y_train = (DataChunking(df_train, dest_file='', chunk_size=100, label_col='root', dataframe=True,
+                                     encoder=encoder, y_only=True, verbose=50)
                         .run_chunkify().get_data())
 
-    logger.info('Shape of train data:\n', X_train.shape, y_train.shape)
+    logger.info(f'Shape of train data:\n, {X_train.shape, y_train.shape}')
 
     logger.info('Saving train data..')
 
     # If folder is non-existent, create it
     Path("data_cache").mkdir(parents=True, exist_ok=True)
 
-    with open('data_cache/X_train.pickle', 'wb') as f:
-        pickle.dump(X_train, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open('data_cache/X_train.pickle', 'wb') as f:
+        # pickle.dump(X_train, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open('data_cache/y_train.pickle', 'wb') as f:
+    with open('data_cache/y_train_root.pickle', 'wb') as f:
         pickle.dump(y_train, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     logger.info("Dataset saved into data_cache folder!")
@@ -50,20 +55,21 @@ def main(dataset_paths):
     del X_train, y_train, df_train
     gc.collect()
 
-    X_test, y_test = (DataChunking(df_test, dest_file='', chunk_size=100, label_col='root', dataframe=True)
+    X_test, y_test = (DataChunking(df_test, dest_file='', chunk_size=100, label_col='root', dataframe=True,
+                                   encoder=encoder, y_only=True, verbose=50)
                       .run_chunkify().get_data())
 
-    logger.info('Shape of test data:\n', X_test.shape, y_test.shape)
+    logger.info(f'Shape of test data:\n, {X_test.shape, y_test.shape}')
 
     logger.info('Saving test data..')
 
     # If folder is non-existent, create it
     Path("data_cache").mkdir(parents=True, exist_ok=True)
 
-    with open('data_cache/X_test.pickle', 'wb') as f:
-        pickle.dump(X_test, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # with open('data_cache/X_test.pickle', 'wb') as f:
+    #     pickle.dump(X_test, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open('data_cache/y_test.pickle', 'wb') as f:
+    with open('data_cache/y_test_root.pickle', 'wb') as f:
         pickle.dump(y_test, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     logger.info("Dataset saved into data_cache folder!")

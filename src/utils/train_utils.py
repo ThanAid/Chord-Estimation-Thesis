@@ -9,6 +9,7 @@ import tqdm
 
 from src.utils.audio_utils import *
 from src.adapt_labels import *
+from src.utils import label_utils
 
 
 class DataGenerator(Sequence):
@@ -91,7 +92,8 @@ class DataChunking:
     Creates chunks using the data given in order to have 2-d data chunks.
     """
 
-    def __init__(self, paths_txt, dest_file, chunk_size, label_col='root', dataframe=False, verbose=200):
+    def __init__(self, paths_txt, dest_file, chunk_size, label_col='root', dataframe=False, verbose=200, y_only=False,
+                 encoder=None, encoding_dict=None):
         """
 
         :param paths_txt: txt or dataframe containing paths, if dataframe the dataframe must be set True
@@ -120,6 +122,12 @@ class DataChunking:
         self.X, self.y = None, None
         self.initialized = False
 
+        # Encoding and encoder for labels
+        self.encoder = encoder
+        self.encoding_dict = encoding_dict
+
+        self.y_only = y_only
+
     def init_arrays(self):
         """
         Initialize X_train, y_train, X_test, y_test
@@ -128,29 +136,44 @@ class DataChunking:
         """
         self.X = np.zeros((1, self.chunk_size, self.input_features))  # num of frequencies
         self.y = np.zeros((1, self.chunk_size, self.label_col_size))
-        # TODO: Change to (1, chunk_size, 14) if use onehotencoder
 
         self.initialized = True
         return self
 
+    def encode_lbls(self, annotations, n_feat):
+        """
+
+        :param annotations:
+        :param n_feat:
+        :return:
+        """
+        encoded_lbls = np.empty((n_feat,))
+        for row in annotations:
+            encoded_lbls = np.column_stack((encoded_lbls, self.encoder.transform(row.reshape(-1, 1)).toarray()[0]))
+        return encoded_lbls
+
     def read_data(self, row):
         audio_path = row['wav']
-        label_path = row['labels']
+        lbl_path = row['labels']
 
         # Assuming you have a function to read audio and label data, replace the placeholders below
         timeseries = read_transformed_audio(audio_path).to_numpy()
 
         # Read label column
-        label_df = pd.read_csv(label_path, header=None, sep=' ')
+        label_df = pd.read_csv(lbl_path, header=None, sep=' ')
         # Extract features from chord
         y_train_features = ConvertLab(label_df, label_col=1, dest=None, is_df=True)
-        annotations = y_train_features.df[self.label_col].values.T
+
+        annotations = y_train_features.df[self.label_col].values
+        annotations = np.vectorize(label_utils.NOTE_ENCODINGS.get)(annotations)
+        # encoded_annotations = self.encode_lbls(annotations, n_feat=len(self.encoder.categories_[0])).T
+        annotations = self.encoder.transform(annotations.reshape(-1, 1)).A
 
         return timeseries, annotations
 
     def chunkify(self):
         """
-        Reads data creates chuncks and appends the data to self.X_train etc...
+        Reads data creates chunks and appends the data to self.X_train etc...
 
         :return:
         """
@@ -158,6 +181,7 @@ class DataChunking:
         for i, (index, row) in enumerate(self.paths_df.iterrows()):
             # Read row
             timeseries, annotations = self.read_data(row)
+            # annotations = annotations.T  # TODO prolly will need annotations.T
 
             # The first iter, data is initialized
             if not self.initialized:
@@ -165,6 +189,7 @@ class DataChunking:
                 try:
                     self.label_col_size = annotations.shape[1]
                 except IndexError:
+                    logger.warning("Index error on checking the number of columns in annotation, resulting to 1.")
                     # In this case there is only one column
                     self.label_col_size = 1
 
@@ -179,26 +204,29 @@ class DataChunking:
             while timestep < chunks:
                 if (chunks - timestep) > self.chunk_size:
                     # X side
-                    batch_x = np.resize(timeseries[timestep:timestep + self.chunk_size, :],
-                                        (1, self.chunk_size, self.input_features))  # num of frequencies
-                    self.X = np.append(self.X, batch_x, axis=0)
+                    if not self.y_only:
+                        batch_x = np.resize(timeseries[timestep:timestep + self.chunk_size, :],
+                                            (1, self.chunk_size, self.input_features))  # num of frequencies
+                        self.X = np.append(self.X, batch_x, axis=0)
 
                     # y side
                     batch_y = np.resize(annotations[timestep:timestep + self.chunk_size],
-                                        (1, self.chunk_size, 1))
-                    # TODO: Change to (1, chunk_size, 14) if use OHE
+                                        (1, self.chunk_size, self.label_col_size))
                     self.y = np.append(self.y, batch_y, axis=0)
 
                 # If there is no enough row left for a whole chunk then we pad
                 else:
-                    batch_x = timeseries[timestep:, :]
+                    if not self.y_only:
+                        batch_x = timeseries[timestep:, :]
                     batch_y = annotations[timestep:]
                     for step in range(0, self.chunk_size + timestep - chunks):
-                        batch_x = np.vstack((batch_x, np.zeros((1, self.input_features))))  # fill with zeros
-                        batch_y = np.append(batch_y, 'N')  # Fill with 'N'
+                        if not self.y_only:
+                            batch_x = np.vstack((batch_x, np.zeros((1, self.input_features))))  # fill with zeros
+                        batch_y = np.append(batch_y, self.encoder.transform(np.array(0).reshape(-1, 1)).A)  # TODO that is wrong find how to do it with ohe
 
-                    self.X = np.append(self.X, np.array([batch_x]), axis=0)
-                    batch_y = np.resize(batch_y, (1, self.chunk_size, 1))
+                    if not self.y_only:
+                        self.X = np.append(self.X, np.array([batch_x]), axis=0)
+                    batch_y = np.resize(batch_y, (1, self.chunk_size, self.label_col_size))
                     self.y = np.append(self.y, batch_y, axis=0)
 
                 timestep += self.chunk_size
@@ -215,7 +243,8 @@ class DataChunking:
 
         :return:
         """
-        self.X = np.delete(self.X, 0, 0)
+        if not self.y_only:
+            self.X = np.delete(self.X, 0, 0)
 
         self.y = np.delete(self.y, 0, 0)
 

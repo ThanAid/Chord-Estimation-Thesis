@@ -40,6 +40,9 @@ EQUIVALENTS = {
     'b16': 'b8', '16': '8', 'bb16': 'bb8'
 }
 
+NOTE_ENCODINGS = {'N': 0, 'C': 1, 'Db': 2, 'D': 3, 'Eb': 4, 'E': 5, 'F': 6,
+                  'Gb': 7, 'G': 8, 'Ab': 9, 'A': 10, 'Bb': 11, 'B': 12}
+
 
 def shift_list(lst, item):
     """Shifts a list in the index of the item selected"""
