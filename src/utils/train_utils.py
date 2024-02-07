@@ -1,15 +1,12 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from tensorflow.keras.utils import Sequence
-import pandas as pd
-import tqdm
+from collections import Counter
 
-from src.utils.audio_utils import *
 from src.adapt_labels import *
 from src.utils import label_utils
+from src.utils.audio_utils import *
 
 
 class DataGenerator(Sequence):
@@ -60,7 +57,7 @@ def slice_freeze_model(model, n_sliced_layers=3):
     return sliced_model
 
 
-def plot_cm(model, X_test, y_test, label_mapping):
+def plot_cm(model, X_test, y_test, label_mapping, is_2d=False):
     """
     Plots confusion matrix
     :param model: keras model
@@ -70,7 +67,12 @@ def plot_cm(model, X_test, y_test, label_mapping):
     :return:
     """
     y_pred = model.predict(X_test)
-    y_pred_id = np.argmax(y_pred, axis=1)
+    if is_2d:
+        # Get the actual predictions
+        y_pred_id = np.hstack([np.argmax(y, axis=1) for y in y_pred])
+        y_test = np.hstack([np.argmax(y, axis=1) for y in y_test])
+    else:
+        y_pred_id = [np.argmax(y, axis=1) for y in y_pred]
 
     # Calculate confusion matrix
     cm = confusion_matrix(y_test, y_pred_id)
@@ -164,8 +166,10 @@ class DataChunking:
         # Extract features from chord
         y_train_features = ConvertLab(label_df, label_col=1, dest=None, is_df=True)
 
+        # Encoding y data
         annotations = y_train_features.df[self.label_col].values
-        annotations = np.vectorize(label_utils.NOTE_ENCODINGS.get)(annotations)
+        annotations = np.vectorize(self.encoding_dict.get)(annotations)
+
         # encoded_annotations = self.encode_lbls(annotations, n_feat=len(self.encoder.categories_[0])).T
         annotations = self.encoder.transform(annotations.reshape(-1, 1)).A
 
@@ -181,7 +185,7 @@ class DataChunking:
         for i, (index, row) in enumerate(self.paths_df.iterrows()):
             # Read row
             timeseries, annotations = self.read_data(row)
-            # annotations = annotations.T  # TODO prolly will need annotations.T
+            # annotations = annotations.T
 
             # The first iter, data is initialized
             if not self.initialized:
@@ -222,7 +226,7 @@ class DataChunking:
                     for step in range(0, self.chunk_size + timestep - chunks):
                         if not self.y_only:
                             batch_x = np.vstack((batch_x, np.zeros((1, self.input_features))))  # fill with zeros
-                        batch_y = np.append(batch_y, self.encoder.transform(np.array(0).reshape(-1, 1)).A)  # TODO that is wrong find how to do it with ohe
+                        batch_y = np.append(batch_y, self.encoder.transform(np.array(0).reshape(-1, 1)).A)
 
                     if not self.y_only:
                         self.X = np.append(self.X, np.array([batch_x]), axis=0)
@@ -265,3 +269,17 @@ class DataChunking:
         """
         self.chunkify().delete_first_chunk()
         return self
+
+    def get_weights(self):
+        """
+        Calculates the weight for each class in order to balance data.
+
+        :return: (dict) keys are classes values are weights.
+        """
+
+        weights = dict(Counter([y.argmax() for chunk in self.y for y in chunk]))
+        n_samples = sum(weights.values())
+        for k in weights:
+            # formula for class weights
+            weights[k] = n_samples / (len(weights) * weights[k])
+        return weights
