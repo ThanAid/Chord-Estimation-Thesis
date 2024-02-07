@@ -4,8 +4,7 @@ from sklearn.metrics import confusion_matrix
 from tensorflow.keras.utils import Sequence
 from collections import Counter
 
-from src.adapt_labels import *
-from src.utils import label_utils
+from src.utils.adapt_labels import *
 from src.utils.audio_utils import *
 
 
@@ -72,7 +71,7 @@ def plot_cm(model, X_test, y_test, label_mapping, is_2d=False):
         y_pred_id = np.hstack([np.argmax(y, axis=1) for y in y_pred])
         y_test = np.hstack([np.argmax(y, axis=1) for y in y_test])
     else:
-        y_pred_id = [np.argmax(y, axis=1) for y in y_pred]
+        y_pred_id = np.argmax(y_pred, axis=1)
 
     # Calculate confusion matrix
     cm = confusion_matrix(y_test, y_pred_id)
