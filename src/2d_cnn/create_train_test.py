@@ -9,9 +9,10 @@ sys.path.append("../src")
 
 from src.utils.create_dataset import *
 from src.utils.train_utils import *
+from src.utils import label_utils
 
 
-def main(dataset_paths, y_only, lab_column='root'):
+def main(dataset_paths, y_only, lab_column='root', encoding_dict=None):
     """
     Creates X_train, X_test, y_train, y_test csvs and stores them in the data_cache folder
     Important: If you want to use fit_cnn.py etc. you first need to run this script to create the data_cache
@@ -28,13 +29,13 @@ def main(dataset_paths, y_only, lab_column='root'):
 
     logger.info("Init the One hot encoder..")
     encoder = OneHotEncoder(categories='auto')
-    encoder.fit(np.array(list(range(0, 13))).reshape(-1, 1))
+    encoder.fit(np.array(list(range(0, len(encoding_dict)))).reshape(-1, 1))
 
     logger.info("Reading and chunking train dataset...")
 
     # Initialize data chunking object
     chunker = DataChunking(df_train, dest_file='', chunk_size=100, label_col=lab_column, dataframe=True,
-                           encoder=encoder, y_only=y_only, verbose=50, encoding_dict=label_utils.NOTE_ENCODINGS)
+                           encoder=encoder, y_only=y_only, verbose=50, encoding_dict=encoding_dict)
 
     X_train, y_train = chunker.run_chunkify().get_data()
 
@@ -66,7 +67,7 @@ def main(dataset_paths, y_only, lab_column='root'):
 
     # Initialize data chunking object
     chunker = DataChunking(df_test, dest_file='', chunk_size=100, label_col=lab_column, dataframe=True,
-                           encoder=encoder, y_only=y_only, verbose=50, encoding_dict=label_utils.NOTE_ENCODINGS)
+                           encoder=encoder, y_only=y_only, verbose=50, encoding_dict=encoding_dict)
 
     X_test, y_test = chunker.run_chunkify().get_data()
 
@@ -94,10 +95,11 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     DATASET_PATHS = '/home/thanos/Documents/Thesis/Dataset_paths/dataset_paths_CQT.txt'
-    LAB_COLUMN = 'root'
+    LAB_COLUMN = 'triad'
     Y_ONLY = True
+    ENCODING_DICT = label_utils.TRIAD_ENCODINGS
 
-    main(DATASET_PATHS, y_only=Y_ONLY, lab_column=LAB_COLUMN)
+    main(DATASET_PATHS, y_only=Y_ONLY, lab_column=LAB_COLUMN, encoding_dict=ENCODING_DICT)
 
     time_elapsed = time.time() - start
 

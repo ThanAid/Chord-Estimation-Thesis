@@ -1,12 +1,10 @@
 import pickle
 import sys
 
-from sklearn.preprocessing import LabelEncoder
-from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers import Adam
 
 sys.path.append("../src")
 
-from src.adapt_labels import *
 from src.utils.train_utils import *
 from src.utils import label_utils
 
