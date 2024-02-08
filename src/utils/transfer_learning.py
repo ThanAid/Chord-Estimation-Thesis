@@ -304,10 +304,16 @@ class TransferLearning2D:
 
         """
         logger.info("Adding new layers...")
+        self.model.add(tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation='relu', padding='same',
+                                              name='triad_conv')),
+        self.model.add(tf.keras.layers.Conv2D(128, kernel_size=(3, 3), activation='relu', padding='same',
+                                              name='triad_conv2')),
+        self.model.add(tf.keras.layers.BatchNormalization(name='BatchNorm_triad')),
+        self.model.add(tf.keras.layers.MaxPooling2D(pool_size=(1, 3), name='MaxPooling_triad')),
+        self.model.add(tf.keras.layers.Dropout(0.4, name='Dropout_triad')),
+        self.model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten(), name='Flatten_Triad'))
         self.model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=128, return_sequences=True),
                                                      name='LSTM_layer'))
-        self.model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(units=32, return_sequences=True),
-                                                     name='LSTM_layer2'))
         self.model.add(tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(len(self.y_weights), activation='softmax'),
                                                        name='out'))
         logger.info("Model after adding layers:\n", self.model.summary())
