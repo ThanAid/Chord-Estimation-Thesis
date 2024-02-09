@@ -2,6 +2,9 @@ import time
 
 import numpy as np
 from loguru import logger
+import sys
+
+sys.path.append("../src")
 
 from src.utils.label_utils import *
 
@@ -138,12 +141,15 @@ class ConvertLab:
             triad = "sus4"
         elif "sus2" in chord:
             triad = "sus2"
+        elif 'N' in chord:
+            triad = "N"
         elif "maj" in chord or "min" not in chord:
             triad = 'maj'
         elif "min" in chord:
             triad = "min"
         else:
             triad = "N"
+
         return triad
 
     @staticmethod
@@ -195,13 +201,13 @@ if __name__ == "__main__":
     start = time.time()
     logger.info("Starting up..")
 
-    label_path = '/home/thanos/Documents/Thesis/labels/TheBeatles_shifted/shifted_-1/09_-_Magical_Mystery_Tour/02_-_The_Fool_On_The_Hill.lab'
-    # dest = "/home/thanos/Documents/Thesis/all_labels_converted.csv"
-    # labels = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
-    # labels = labels.drop_duplicates('chord')
-    # labels = read_lab(label_path)
+    label_path = "/home/thanos/Documents/Thesis/all_labels.csv"
+    dest = "/home/thanos/Documents/Thesis/all_labels_converted.csv"
+    labels = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
+    labels = labels.drop_duplicates('chord')
+    labels = read_lab(label_path)
 
-    adapted_labs = AdaptLabels(label_path, 1803, duration=180.24489795918367)
+    adapted_labs = ConvertLab(label_path, label_col='chord', dest=dest, is_df=False)
     time_elapsed = time.time() - start
     # logger.info(f"Finished, Found {len(converted_test.df)} chords.")
     logger.info(f"Time elapsed: {time_elapsed:.2f} seconds.")

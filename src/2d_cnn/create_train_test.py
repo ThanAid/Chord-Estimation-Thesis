@@ -12,7 +12,7 @@ from src.utils.train_utils import *
 from src.utils import label_utils
 
 
-def main(dataset_paths, y_only, lab_column='root', encoding_dict=None):
+def main(dataset_paths, y_only, cache_folder='data_cache', lab_column='root', encoding_dict=None):
     """
     Creates X_train, X_test, y_train, y_test csvs and stores them in the data_cache folder
     Important: If you want to use fit_cnn.py etc. you first need to run this script to create the data_cache
@@ -24,8 +24,11 @@ def main(dataset_paths, y_only, lab_column='root', encoding_dict=None):
     """
 
     # Split dataset by tracks
+    logger.info("Keeping CD1 and CD2 as evaluation data..")
+    dataset_paths_df, df_eval = get_evaluation_set(dataset_paths)
+
     logger.info("Splitting dataset...")
-    df_train, df_test = split_dataset(dataset_paths, test_size=0.2, random_state=42)
+    df_train, df_test = split_dataset(dataset_paths_df, test_size=0.15, random_state=42, is_df=True)
 
     logger.info("Init the One hot encoder..")
     encoder = OneHotEncoder(categories='auto')
@@ -46,16 +49,16 @@ def main(dataset_paths, y_only, lab_column='root', encoding_dict=None):
     logger.info('Saving train data..')
 
     # If folder is non-existent, create it
-    Path("data_cache").mkdir(parents=True, exist_ok=True)
+    Path(cache_folder).mkdir(parents=True, exist_ok=True)
 
     if not y_only:
-        with open('data_cache/X_train.pickle', 'wb') as f:
+        with open(f'{cache_folder}/X_train.pickle', 'wb') as f:
             pickle.dump(X_train, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open(f'data_cache/y_train_weights_{lab_column}.pickle', 'wb') as f:
+    with open(f'{cache_folder}/y_train_weights_{lab_column}.pickle', 'wb') as f:
         pickle.dump(y_weights, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open(f'data_cache/y_train_{lab_column}.pickle', 'wb') as f:
+    with open(f'{cache_folder}/y_train_{lab_column}.pickle', 'wb') as f:
         pickle.dump(y_train, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     logger.info("Dataset saved into data_cache folder!")
@@ -76,16 +79,36 @@ def main(dataset_paths, y_only, lab_column='root', encoding_dict=None):
     logger.info('Saving test data..')
 
     # If folder is non-existent, create it
-    Path("data_cache").mkdir(parents=True, exist_ok=True)
+    Path(cache_folder).mkdir(parents=True, exist_ok=True)
 
     if not y_only:
-        with open('data_cache/X_test.pickle', 'wb') as f:
+        with open(f'{cache_folder}/X_test.pickle', 'wb') as f:
             pickle.dump(X_test, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    with open(f'data_cache/y_test_{lab_column}.pickle', 'wb') as f:
+    with open(f'{cache_folder}/y_test_{lab_column}.pickle', 'wb') as f:
         pickle.dump(y_test, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    logger.info("Dataset saved into data_cache folder!")
+        # Initialize data chunking object
+        chunker = DataChunking(df_eval, dest_file='', chunk_size=100, label_col=lab_column, dataframe=True,
+                               encoder=encoder, y_only=y_only, verbose=50, encoding_dict=encoding_dict)
+
+        X_eval, y_eval = chunker.run_chunkify().get_data()
+
+        logger.info(f'Shape of eval data:\n, {X_eval.shape, y_eval.shape}')
+
+        logger.info('Saving eval data..')
+
+        # If folder is non-existent, create it
+        Path(cache_folder).mkdir(parents=True, exist_ok=True)
+
+        if not y_only:
+            with open(f'{cache_folder}/X_eval.pickle', 'wb') as f:
+                pickle.dump(X_test, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        with open(f'{cache_folder}/y_eval_{lab_column}.pickle', 'wb') as f:
+            pickle.dump(y_test, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    logger.info(f"Dataset saved into {cache_folder} folder!")
 
 
 if __name__ == "__main__":
@@ -95,9 +118,10 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     DATASET_PATHS = '/home/thanos/Documents/Thesis/Dataset_paths/dataset_paths_CQT.txt'
-    LAB_COLUMN = 'triad'
-    Y_ONLY = True
-    ENCODING_DICT = label_utils.TRIAD_ENCODINGS
+    CACHE_FOLDER = 'data_cache_2'
+    LAB_COLUMN = 'root'
+    Y_ONLY = False
+    ENCODING_DICT = label_utils.NOTE_ENCODINGS
 
     main(DATASET_PATHS, y_only=Y_ONLY, lab_column=LAB_COLUMN, encoding_dict=ENCODING_DICT)
 

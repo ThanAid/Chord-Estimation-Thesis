@@ -5,7 +5,7 @@ import pandas as pd
 from multiprocessing import Pool
 import time
 from utils import audio_utils
-import adapt_labels
+from src.utils import adapt_labels
 from loguru import logger
 import numpy as np
 

@@ -5,6 +5,8 @@ it concatinates to create the dataset.
 """
 import sys
 
+import pandas as pd
+
 sys.path.append("../src")
 
 from sklearn.model_selection import train_test_split
@@ -16,7 +18,8 @@ from loguru import logger
 def read_and_concatenate_files(file_path, dataframe=False, verbose=0):
     # Read the file into a DataFrame
     if not dataframe:
-        df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None, low_memory=False)
+        df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None,
+                         low_memory=False)
     else:
         df = file_path
 
@@ -51,18 +54,41 @@ def read_and_concatenate_files(file_path, dataframe=False, verbose=0):
     return audio_data_df
 
 
-def split_dataset(file_path, test_size=0.2, random_state=42):
+def split_dataset(file_path, test_size=0.2, random_state=42, is_df=False):
     """
-
+    Splits the data into train and test set.
+    :type is_df: Boolean, if True then the file_path given is already in DataFrame format.
     :param file_path:
     :param test_size:
     :param random_state:
     :return:
     """
-    df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+    if not is_df:
+        df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+    else:
+        df = file_path
     df_train, df_test = train_test_split(df, test_size=test_size, random_state=random_state)
 
     return df_train, df_test
+
+
+def get_evaluation_set(file_path):
+    """
+    Keeps CD1 and CD2 Beatles for testing purposes.
+    :param file_path: path of txt containing data-label paths.
+    :return: pd.Dataframe with data excluding the test data and pd.Dataframe of data-label paths for CD1 and CD2
+    """
+    test_set = []
+    df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+    for i, data_tuple in df.iterrows():
+        # We only need the raw data so we skip shifted
+        if 'shifted' in data_tuple[0]:
+            continue
+        if 'CD1' in data_tuple[0] or 'CD2' in data_tuple[0]:
+            test_set.append(data_tuple)
+            # Removes that Row from the Dataframe
+            df = df.drop(df.index[i])
+    return df, pd.DataFrame(test_set)
 
 
 if __name__ == "__main__":
