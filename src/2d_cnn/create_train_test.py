@@ -80,33 +80,35 @@ def main(dataset_paths, y_only, cache_folder='data_cache', lab_column='root', en
 
     # If folder is non-existent, create it
     Path(cache_folder).mkdir(parents=True, exist_ok=True)
-
+    
     if not y_only:
         with open(f'{cache_folder}/X_test.pickle', 'wb') as f:
             pickle.dump(X_test, f, protocol=pickle.HIGHEST_PROTOCOL)
-
+    
     with open(f'{cache_folder}/y_test_{lab_column}.pickle', 'wb') as f:
         pickle.dump(y_test, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-        # Initialize data chunking object
-        chunker = DataChunking(df_eval, dest_file='', chunk_size=100, label_col=lab_column, dataframe=True,
-                               encoder=encoder, y_only=y_only, verbose=50, encoding_dict=encoding_dict)
+    logger.info("Reading and chunking eval dataset...")
 
-        X_eval, y_eval = chunker.run_chunkify().get_data()
+    # Initialize data chunking object
+    chunker = DataChunking(df_eval, dest_file='', chunk_size=100, label_col=lab_column, dataframe=True,
+                           encoder=encoder, y_only=y_only, verbose=50, encoding_dict=encoding_dict)
 
-        logger.info(f'Shape of eval data:\n, {X_eval.shape, y_eval.shape}')
+    X_eval, y_eval = chunker.run_chunkify().get_data()
 
-        logger.info('Saving eval data..')
+    logger.info(f'Shape of eval data:\n, {X_eval.shape, y_eval.shape}')
 
-        # If folder is non-existent, create it
-        Path(cache_folder).mkdir(parents=True, exist_ok=True)
+    logger.info('Saving eval data..')
 
-        if not y_only:
-            with open(f'{cache_folder}/X_eval.pickle', 'wb') as f:
-                pickle.dump(X_test, f, protocol=pickle.HIGHEST_PROTOCOL)
+    # If folder is non-existent, create it
+    Path(cache_folder).mkdir(parents=True, exist_ok=True)
 
-        with open(f'{cache_folder}/y_eval_{lab_column}.pickle', 'wb') as f:
-            pickle.dump(y_test, f, protocol=pickle.HIGHEST_PROTOCOL)
+    if not y_only:
+        with open(f'{cache_folder}/X_eval.pickle', 'wb') as f:
+            pickle.dump(X_eval, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    with open(f'{cache_folder}/y_eval_{lab_column}.pickle', 'wb') as f:
+        pickle.dump(y_eval, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     logger.info(f"Dataset saved into {cache_folder} folder!")
 

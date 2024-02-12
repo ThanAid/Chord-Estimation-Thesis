@@ -3,6 +3,7 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from tensorflow.keras.utils import Sequence
 from collections import Counter
+from sklearn.metrics import classification_report
 
 from src.utils.adapt_labels import *
 from src.utils.audio_utils import *
@@ -78,6 +79,8 @@ def plot_cm(model, X_test, y_test, label_mapping, is_2d=False):
 
     # Get the labels in the correct order
     labels = list(label_mapping.keys())
+
+    logger.info(classification_report(y_test, y_pred_id, target_names=labels))
 
     # Display the confusion matrix
     plt.figure(figsize=(8, 6))

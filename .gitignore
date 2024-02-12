@@ -4,4 +4,5 @@ notebooks/.ipynb_checkpoints
 src/deep_cnn/data_cache
 src/deep_cnn/models
 src/2d_cnn/data_cache
+src/2d_cnn/data_cache_2
 src/2d_cnn/models

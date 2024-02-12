@@ -22,11 +22,17 @@ def main(dataset_file):
     with open(f"{dataset_file}/X_test.pickle", 'rb') as f:
         X_test = pickle.load(f)
 
+    with open(f"{dataset_file}/X_eval.pickle", 'rb') as f:
+        X_eval = pickle.load(f)
+
     with open(f"{dataset_file}/y_train_root.pickle", 'rb') as f:
         y_train_root = pickle.load(f).astype(int)
 
     with open(f"{dataset_file}/y_test_root.pickle", 'rb') as f:
         y_test_root = pickle.load(f).astype(int)
+
+    with open(f"{dataset_file}/y_eval_root.pickle", 'rb') as f:
+        y_eval_root = pickle.load(f).astype(int)
 
     with open(f"{dataset_file}/y_train_weights_root.pickle", 'rb') as f:
         y_weights = pickle.load(f)
@@ -34,6 +40,7 @@ def main(dataset_file):
     # Reshape the features for CNN input
     X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2], 1)
     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+    X_eval = X_eval.reshape(X_eval.shape[0], X_eval.shape[1], X_eval.shape[2], 1)
 
     # Using generators to deal with running out of memory on GPU
     train_gen = DataGenerator(X_train, y_train_root, 16)
@@ -78,9 +85,10 @@ def main(dataset_file):
     # Train the model
     model.fit(train_gen, epochs=40, validation_data=test_gen)
     # Save the model if needed
-    model.save('models/CQT_cnn_root_40_6.h5')
+    model.save('models/CQT_cnn_root_40_eval_1.h5')
 
     plot_cm(model, X_test, y_test_root, label_mapping=label_utils.NOTE_ENCODINGS, is_2d=True)
+    plot_cm(model, X_eval, y_eval_root, label_mapping=label_utils.NOTE_ENCODINGS, is_2d=True)
 
 
 if __name__ == "__main__":
@@ -88,7 +96,7 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     # dataset_path = '/home/thanos/Documents/Thesis/dataset_paths_transformed.txt'
-    dataset_file = 'data_cache'
+    dataset_file = 'data_cache_2'
 
     main(dataset_file)
 
