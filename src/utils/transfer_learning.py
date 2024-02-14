@@ -231,6 +231,8 @@ class TransferLearning2D:
         self.X_train = None
         self.train_gen = None
         self.y_test_encoded = None
+        self.X_eval = None
+        self.y_eval_encoded = None
         self.y_train_encoded = None
         self.y_weights = None
         self.label_mapping = label_mapping
@@ -264,11 +266,17 @@ class TransferLearning2D:
         with open(f"{self.cache_path}/X_test.pickle", 'rb') as f:
             self.X_test = pickle.load(f)
 
+        with open(f"{self.cache_path}/X_eval.pickle", 'rb') as f:
+            self.X_eval = pickle.load(f)
+
         with open(f"{self.cache_path}/y_train_{self.label_col}.pickle", 'rb') as f:
             self.y_train_encoded = pickle.load(f)
 
         with open(f"{self.cache_path}/y_test_{self.label_col}.pickle", 'rb') as f:
             self.y_test_encoded = pickle.load(f)
+
+        with open(f"{self.cache_path}/y_eval_{self.label_col}.pickle", 'rb') as f:
+            self.y_eval_encoded = pickle.load(f)
 
         with open(f"{self.cache_path}/y_train_weights_{self.label_col}.pickle", 'rb') as f:
             self.y_weights = pickle.load(f)
@@ -285,6 +293,7 @@ class TransferLearning2D:
         # Reshape the features for CNN input
         self.X_train = self.X_train.reshape(self.X_train.shape[0], self.X_train.shape[1], self.X_train.shape[2], 1)
         self.X_test = self.X_test.reshape(self.X_test.shape[0], self.X_test.shape[1], self.X_test.shape[2], 1)
+        self.X_eval = self.X_eval.reshape(self.X_eval.shape[0], self.X_eval.shape[1], self.X_eval.shape[2], 1)
 
         # y data is already encoded
         # Using generators to deal with running out of memory on GPU
@@ -362,7 +371,7 @@ class TransferLearning2D:
         :return:
         """
         plot_cm(self.model, self.X_test, self.y_test_encoded, self.label_mapping, is_2d=True)
-
+        plot_cm(self.model, self.X_eval, self.y_eval_encoded, self.label_mapping, is_2d=True)
         return self
 
     def run_pipeline(self):
