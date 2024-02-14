@@ -74,20 +74,23 @@ def split_dataset(file_path, test_size=0.2, random_state=42, is_df=False):
 
 def get_evaluation_set(file_path):
     """
-    Keeps CD1 and CD2 Beatles for testing purposes.
+    Keeps CD1 and CD2 and other albums Beatles for testing purposes.
     :param file_path: path of txt containing data-label paths.
     :return: pd.Dataframe with data excluding the test data and pd.Dataframe of data-label paths for CD1 and CD2
     """
     test_set = []
+    drop_indexes = []  # List containing indexes to drop
     df = pd.read_csv(file_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
     for i, data_tuple in df.iterrows():
         # We only need the raw data so we skip shifted
         if 'shifted' in data_tuple[0]:
             continue
-        if 'CD1' in data_tuple[0] or 'CD2' in data_tuple[0]:
+        if 'CD1' in data_tuple[0] or 'CD2' in data_tuple[0] or 'Help' in data_tuple[0] or 'Please' in data_tuple[0]:
             test_set.append(data_tuple)
             # Removes that Row from the Dataframe
-            df = df.drop(df.index[i])
+            drop_indexes.append(i)
+
+    df = df.drop(drop_indexes)
     return df, pd.DataFrame(test_set)
 
 
