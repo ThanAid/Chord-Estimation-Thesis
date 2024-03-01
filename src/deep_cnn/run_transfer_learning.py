@@ -10,7 +10,7 @@ def main():
     logger.info("Starting up..")
 
     model_path = 'models/CQT_cnn_root_10.h5'
-    label_col = 'extension_2'
+    label_col = 'triad'
     cache_path = 'data_cache'
     dest_model = f"models/CQT_cnn_{label_col}_10.h5"
 

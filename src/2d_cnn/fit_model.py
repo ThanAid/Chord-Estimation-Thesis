@@ -85,7 +85,7 @@ def main(dataset_file):
     # Train the model
     model.fit(train_gen, epochs=40, validation_data=test_gen)
     # Save the model if needed
-    model.save('models/CQT_cnn_root_40_eval_1.h5')
+    model.save('models/CQT_cnn_bass_40_eval_1.h5')
 
     plot_cm(model, X_test, y_test_root, label_mapping=label_utils.NOTE_ENCODINGS, is_2d=True)
     plot_cm(model, X_eval, y_eval_root, label_mapping=label_utils.NOTE_ENCODINGS, is_2d=True)
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     # dataset_path = '/home/thanos/Documents/Thesis/dataset_paths_transformed.txt'
-    dataset_file = 'data_cache_2'
+    dataset_file = 'data_cache_3'
 
     main(dataset_file)
 

@@ -1,20 +1,14 @@
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-import numpy as np
-import pandas as pd
-import time
-from loguru import logger
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
-import matplotlib.pyplot as plt
 
 import sys
 
 sys.path.append("../src")
 
 from src.utils.create_dataset import *
-from src.adapt_labels import *
+from src.utils.adapt_labels import *
 
 
 def main(dataset_paths):

@@ -5,7 +5,6 @@ from tensorflow.keras.optimizers import Adam
 
 sys.path.append("../src")
 
-from src.adapt_labels import *
 from src.utils.train_utils import *
 
 

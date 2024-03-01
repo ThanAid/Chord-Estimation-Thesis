@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 sys.path.append("../src")
 
 from src.utils.create_dataset import *
-from src.adapt_labels import *
+from src.utils.adapt_labels import *
 
 
 def main(dataset_paths):
