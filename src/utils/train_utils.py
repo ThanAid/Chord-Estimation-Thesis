@@ -9,6 +9,82 @@ from src.utils.adapt_labels import *
 from src.utils.audio_utils import *
 
 
+def slice_freeze_model(model, n_sliced_layers=3):
+    """
+    given a tf keras model and a number of layers to slice (from the end) it returns a sliced model usable for transfer
+    learning. If freeze is True it also freezes parameters from conv layers.
+
+    :param model: keras model
+    :param n_sliced_layers: (int) number of layers to cut
+
+    :return: keras model
+    """
+
+    # remove the last layers (n sclided)
+    sliced_model = tf.keras.Sequential(model.layers[:-n_sliced_layers])
+
+    # Freeze, set trainable=False for the layers from loaded_model
+    for layer in sliced_model.layers:
+        layer.trainable = False
+
+    return sliced_model
+
+
+def model_predict(model, X, y=None, is_2d=False):
+    """
+    Test function to predict and return the predictions and the actual values if given.
+
+    :parameter model: keras model
+    :parameter X: array like
+    :parameter y: array like
+    :parameter is_2d: bool
+
+    :return y_pred_id: array like
+    :return y: array like
+    """
+    y_pred = model.predict(X)
+    if is_2d:
+        # Get the actual predictions
+        y_pred_id = np.hstack([np.argmax(y, axis=1) for y in y_pred])
+        if y:
+            y = np.hstack([np.argmax(y, axis=1) for y in y])
+    else:
+        y_pred_id = np.argmax(y_pred, axis=1)
+
+    return y_pred_id, y
+
+
+def plot_cm(model, X_test, y_test, label_mapping, is_2d=False):
+    """
+    Plots confusion matrix
+
+    :param is_2d: bool
+    :param model: keras model
+    :param X_test: array like
+    :param y_test: encoded y test
+    :param label_mapping: dict with encoding map
+
+    :return:
+    """
+    y_pred_id, y_test = model_predict(model, X_test, y_test, is_2d)
+
+    # Calculate confusion matrix
+    cm = confusion_matrix(y_test, y_pred_id)
+
+    # Get the labels in the correct order
+    labels = list(label_mapping.keys())
+
+    logger.info(classification_report(y_test, y_pred_id, target_names=labels))
+
+    # Display the confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.title("Confusion Matrix")
+    plt.show()
+
+
 class DataGenerator(Sequence):
     """
     Generator for batches in TF
@@ -35,60 +111,6 @@ class DataGenerator(Sequence):
         batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
         batch_y = self.y[idx * self.batch_size:(idx + 1) * self.batch_size]
         return batch_x, batch_y
-
-
-def slice_freeze_model(model, n_sliced_layers=3):
-    """
-    given a tf keras model and a number of layers to slice (from the end) it returns a sliced model usable for transfer
-    learning. If freeze is True it also freezes parameters from conv layers.
-
-    :param model: keras model
-    :param n_sliced_layers: (int) number of layers to cut
-    :return: keras model
-    """
-
-    # remove the last layers (n sclided)
-    sliced_model = tf.keras.Sequential(model.layers[:-n_sliced_layers])
-
-    # Freeze, set trainable=False for the layers from loaded_model
-    for layer in sliced_model.layers:
-        layer.trainable = False
-
-    return sliced_model
-
-
-def plot_cm(model, X_test, y_test, label_mapping, is_2d=False):
-    """
-    Plots confusion matrix
-    :param model: keras model
-    :param X_test: array like
-    :param y_test: encoded y test
-    :param label_mapping: dict with encoding map
-    :return:
-    """
-    y_pred = model.predict(X_test)
-    if is_2d:
-        # Get the actual predictions
-        y_pred_id = np.hstack([np.argmax(y, axis=1) for y in y_pred])
-        y_test = np.hstack([np.argmax(y, axis=1) for y in y_test])
-    else:
-        y_pred_id = np.argmax(y_pred, axis=1)
-
-    # Calculate confusion matrix
-    cm = confusion_matrix(y_test, y_pred_id)
-
-    # Get the labels in the correct order
-    labels = list(label_mapping.keys())
-
-    logger.info(classification_report(y_test, y_pred_id, target_names=labels))
-
-    # Display the confusion matrix
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
-    plt.title("Confusion Matrix")
-    plt.show()
 
 
 class DataChunking:
@@ -285,3 +307,4 @@ class DataChunking:
             # formula for class weights
             weights[k] = n_samples / (len(weights) * weights[k])
         return weights
+
