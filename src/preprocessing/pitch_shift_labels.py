@@ -3,7 +3,7 @@ import os
 import time
 from multiprocessing import Pool
 from pathlib import Path
-from utils.label_utils import *
+from src.utils.label_utils import *
 
 from loguru import logger
 

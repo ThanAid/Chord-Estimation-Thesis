@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from multiprocessing import Pool
 import time
-from utils import audio_utils
+from src.utils import audio_utils
 from src.utils import adapt_labels
 from loguru import logger
 import numpy as np

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from utils.audio_utils import *
+from src.utils.audio_utils import *
 
 
 def parse_input(args=None):
