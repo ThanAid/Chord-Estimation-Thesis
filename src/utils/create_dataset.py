@@ -5,8 +5,6 @@ it concatinates to create the dataset.
 """
 import sys
 
-import pandas as pd
-
 sys.path.append("../src")
 
 from sklearn.model_selection import train_test_split
@@ -92,6 +90,23 @@ def get_evaluation_set(file_path):
 
     df = df.drop(drop_indexes)
     return df, pd.DataFrame(test_set)
+
+
+def get_data_name(data_path: str):
+    """
+    Extracts The artist, album and song name from the path
+
+    :param data_path: path of the data
+
+    :return song_name, album_name, artist_name
+    """
+    song_name = data_path[:-4].split("/")[-1]
+
+    album_name = data_path[:-4].split("/")[-2]
+
+    artist_name = data_path[:-4].split("/")[-3]
+
+    return song_name, album_name, artist_name
 
 
 if __name__ == "__main__":

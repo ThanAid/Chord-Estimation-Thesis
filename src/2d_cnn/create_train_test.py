@@ -27,8 +27,15 @@ def main(dataset_paths, y_only, cache_folder='data_cache', lab_column='root', en
     logger.info("Keeping CD1 and CD2 as evaluation data..")
     dataset_paths_df, df_eval = get_evaluation_set(dataset_paths)
 
+    # Save paths to a csv file
+    df_eval.to_csv(f'{cache_folder}/df_eval.csv', index=False)
+
     logger.info("Splitting dataset...")
     df_train, df_test = split_dataset(dataset_paths_df, test_size=0.15, random_state=42, is_df=True)
+
+    # Save paths to a csv file
+    df_train.to_csv(f'{cache_folder}/df_train.csv', index=False)
+    df_test.to_csv(f'{cache_folder}/df_test.csv', index=False)
 
     logger.info("Init the One hot encoder..")
     encoder = OneHotEncoder(categories='auto')

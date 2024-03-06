@@ -1,12 +1,17 @@
+import pickle
+from collections import Counter
+from pathlib import Path
+
 import seaborn as sns
 import tensorflow as tf
-from sklearn.metrics import confusion_matrix
-from tensorflow.keras.utils import Sequence
-from collections import Counter
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import OneHotEncoder
+from tensorflow.keras.utils import Sequence
 
 from src.utils.adapt_labels import *
 from src.utils.audio_utils import *
+from src.utils.create_dataset import get_data_name
 
 
 def slice_freeze_model(model, n_sliced_layers=3):
@@ -39,19 +44,68 @@ def model_predict(model, X, y=None, is_2d=False):
     :parameter y: array like
     :parameter is_2d: bool
 
-    :return y_pred_id: array like
-    :return y: array like
+    :return: (y_pred_id, y) array like flattened predictions and actual values
     """
     y_pred = model.predict(X)
     if is_2d:
         # Get the actual predictions
         y_pred_id = np.hstack([np.argmax(y, axis=1) for y in y_pred])
-        if y:
+        if y is not None:
             y = np.hstack([np.argmax(y, axis=1) for y in y])
     else:
         y_pred_id = np.argmax(y_pred, axis=1)
 
     return y_pred_id, y
+
+
+def laod_encode_chunk(data_path, cache_folder='data_cache', lab_column='root', encoding_dict=None, save=False):
+    """
+    Loads and encodes the data from the given path and saves it into the
+    cache folder (if needed) then returns it.
+
+    :param data_path: str
+    :param cache_folder: str
+    :param lab_column: str
+    :param encoding_dict: dict
+    :param save: bool
+
+    :return: X, y data
+    """
+
+    logger.info("Init the One hot encoder..")
+    encoder = OneHotEncoder(categories='auto')
+    encoder.fit(np.array(list(range(0, len(encoding_dict)))).reshape(-1, 1))
+
+    logger.info("Reading and chunking data...")
+    if type(data_path) == pd.DataFrame:
+        df = data_path
+    else:
+        df = pd.read_csv(data_path, delimiter=' ', index_col=False, names=['wav', 'labels'], header=None)
+
+    song_name, album_name, artist_name = get_data_name(data_path['wav'][0])
+
+    # Initialize data chunking object
+    chunker = DataChunking(df, dest_file='', chunk_size=100, label_col=lab_column, dataframe=True,
+                           encoder=encoder, y_only=False, verbose=50, encoding_dict=encoding_dict)
+
+    X, y = chunker.run_chunkify().get_data()
+    logger.info(f'Shape of data:\n, {X.shape, y.shape}')
+
+    if save:
+        logger.info('Saving data..')
+
+        # If folder is non-existent, create it
+        Path(cache_folder).mkdir(parents=True, exist_ok=True)
+
+        with open(f'{cache_folder}/X_{artist_name}_{album_name}_{song_name}.pickle', 'wb') as f:
+            pickle.dump(X, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        with open(f'{cache_folder}/y_{artist_name}_{album_name}_{song_name}_{lab_column}.pickle', 'wb') as f:
+            pickle.dump(y, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        logger.info("Dataset saved into data_cache folder!")
+
+    return X, y
 
 
 def plot_cm(model, X_test, y_test, label_mapping, is_2d=False):
@@ -307,4 +361,3 @@ class DataChunking:
             # formula for class weights
             weights[k] = n_samples / (len(weights) * weights[k])
         return weights
-
