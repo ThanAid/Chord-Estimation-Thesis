@@ -74,6 +74,8 @@ def main(dataset_file):
     # Save the model if needed
     model.save('models/CQT_cnn_root_10.h5')
 
+    plot_cm(model, X_test, y_test_encoded, label_mapping)
+
 
 if __name__ == "__main__":
     start = time.time()
