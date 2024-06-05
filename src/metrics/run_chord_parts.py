@@ -12,7 +12,6 @@ DATA_PATH = "/home/thanos/Documents/Thesis/Chord-Estimation-Thesis/src/2d_cnn/pr
 DATA_NAMES = "/home/thanos/Documents/Thesis/Chord-Estimation-Thesis/src/2d_cnn/data_cache_3/df_eval.csv"
 SMOOTH: bool = True
 FILTER: bool = True
-MIREX: bool = False
 N_PARTS = 1
 
 
@@ -44,6 +43,8 @@ def main():
 
     print(f"Precision for {N_PARTS} components: {n_precision}")
     print(f"Mean Precision for {N_PARTS} is {n_precision_mean}.")
+
+    return 0
 
 
 if __name__ == "__main__":
