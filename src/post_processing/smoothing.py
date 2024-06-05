@@ -7,7 +7,6 @@ import pandas as pd
 from collections import Counter
 
 
-# TODO: REALLY IMPORTANT! FIRST SMOOTH THEN FILTER
 def get_closest_triad(frames: pd.DataFrame, i: int, direction: str = "left"):
     """
     Get the closest triad to the given index.
@@ -50,18 +49,18 @@ def chord_filter(frames: pd.DataFrame) -> pd.DataFrame:
      """
     output = frames.copy()  # don't overwrite the input
     for i in range(len(frames)):
-        if frames.iloc[i, 0] == 0:
-            output.iloc[i] = 0
-        elif frames.iloc[i, 1] == 0:
-            output.iloc[i, 1] = frames.iloc[i, 0]
-            if frames.iloc[i, 2] == 0:
+        if frames.iloc[i, 0] == 0:  # If Root is None
+            output.iloc[i] = 0  # then the whole chord is None
+        elif frames.iloc[i, 1] == 0:  # if bass is None
+            output.iloc[i, 1] = frames.iloc[i, 0] # then bass is root
+            if frames.iloc[i, 2] == 0:  # if triad is None
                 tr_l, left = get_closest_triad(frames, i, direction="left")
                 tr_r, rigth = get_closest_triad(frames, i, direction="right")
                 if abs(i - left) < abs(i - rigth):
                     output.iloc[i, 2] = tr_l
                 else:
                     output.iloc[i, 2] = tr_r
-        elif frames.iloc[i, 2] == 0:
+        elif frames.iloc[i, 2] == 0:  # if triad is None
             tr_l, left = get_closest_triad(frames, i, direction="left")
             tr_r, rigth = get_closest_triad(frames, i, direction="right")
             if abs(i - left) < abs(i - rigth):
