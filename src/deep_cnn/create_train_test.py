@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     # dataset_path = '/home/thanos/Documents/Thesis/dataset_paths_transformed.txt'
     dataset_path = '/home/thanos/Documents/Thesis/Dataset_paths/dataset_paths_CQT.txt'
-    y_column = 'triad'
+    y_column = 'extension_1'
 
     main(dataset_path, y_column)
 

@@ -58,11 +58,11 @@ class Inference:
 
 def main():
     """Runs the inference pipeline for the given model and data"""
-    model_path = 'models/CQT_cnn_extension_2_30_eval_1.h5'
-    label_col = 'extension_2'
+    label_col = 'extension_1'
+    model_path = f'models/CQT_cnn_{label_col}_30_eval_1_7.h5'
     cache_path = 'predictions'
-    encoding_dict = label_utils.EXT_2_ENCODINGS
-    data_paths = 'data_cache_3/df_eval.csv'
+    encoding_dict = label_utils.EXT_1_ENCODINGS
+    data_paths = 'data_cache_4/df_eval.csv'
     save = True
 
     # Initialize the inference object

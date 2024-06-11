@@ -167,7 +167,9 @@ class ConvertLab:
             return 'hdim7'
         elif 'dim7' in chord:
             return 'dim7'
-        elif '7' in chord or '9' in chord:
+        elif '7' in chord:
+            return '7'
+        elif '9' in chord:
             return 'min7'
         else:
             return 'N'
@@ -202,7 +204,7 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     label_path = "/home/thanos/Documents/Thesis/all_labels.csv"
-    dest = "/home/thanos/Documents/Thesis/all_labels_converted.csv"
+    dest = "/home/thanos/Documents/Thesis/all_labels_converted_7.csv"
     labels = pd.read_csv(label_path, on_bad_lines='skip', index_col=False)
     labels = labels.drop_duplicates('chord')
     labels = read_lab(label_path)

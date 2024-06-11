@@ -12,10 +12,10 @@ DATA_PATH = "/home/thanos/Documents/Thesis/Chord-Estimation-Thesis/src/2d_cnn/pr
 DATA_NAMES = "/home/thanos/Documents/Thesis/Chord-Estimation-Thesis/src/2d_cnn/data_cache_3/df_eval.csv"
 SMOOTH: bool = True
 FILTER: bool = True
-N_PARTS = 1
+# N_PARTS = 1
 
 
-def main():
+def main(N_PARTS):
     data_paths_df = pd.read_csv(DATA_NAMES)
     preds_total = pd.DataFrame()
     actual_total = pd.DataFrame()
@@ -51,7 +51,8 @@ if __name__ == "__main__":
     gc.collect()
     start = time.time()
 
-    main()
+    for N_PARTS in range(1, 6):
+        main(N_PARTS)
 
     time_elapsed = time.time() - start
 

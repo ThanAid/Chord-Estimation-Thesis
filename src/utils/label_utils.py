@@ -45,7 +45,7 @@ NOTE_ENCODINGS = {'N': 0, 'C': 1, 'Db': 2, 'D': 3, 'Eb': 4, 'E': 5, 'F': 6,
 
 TRIAD_ENCODINGS = {'N': 0, 'maj': 1, 'min': 2, 'dim': 3, 'aug': 4, 'sus2': 5, 'sus4': 6}
 
-EXT_1_ENCODINGS = {'N': 0, 'dim7': 1, 'hdim7': 2, 'maj6': 3, 'maj7': 4, 'min7': 5}
+EXT_1_ENCODINGS = {'N': 0, 'dim7': 1, 'hdim7': 2, 'maj6': 3, 'maj7': 4, 'min7': 5, '7': 6}
 
 EXT_2_ENCODINGS = {'N': 0, '9': 1}
 

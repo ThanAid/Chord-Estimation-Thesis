@@ -127,10 +127,10 @@ if __name__ == "__main__":
     logger.info("Starting up..")
 
     DATASET_PATHS = '/home/thanos/Documents/Thesis/Dataset_paths/dataset_paths_CQT.txt'
-    CACHE_FOLDER = 'data_cache_3'
-    LAB_COLUMN = 'extension_2'
+    CACHE_FOLDER = 'data_cache_4'
+    LAB_COLUMN = 'extension_1'
     Y_ONLY = True
-    ENCODING_DICT = label_utils.EXT_2_ENCODINGS
+    ENCODING_DICT = label_utils.EXT_1_ENCODINGS
 
     main(DATASET_PATHS, cache_folder=CACHE_FOLDER, y_only=Y_ONLY, lab_column=LAB_COLUMN, encoding_dict=ENCODING_DICT)
 
