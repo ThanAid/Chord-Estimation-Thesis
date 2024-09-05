@@ -21,6 +21,9 @@ ologies, sophisticated feature engineering, and post-processing techniques, show
 its potential to advance music information retrieval systems.
 
 ## Preprocessing
+<p align="center">
+ <img src="pics/spectogram.png" alt="PrePro" width="600" />
+</p>
 
 The preprocessing pipeline involves a series of steps to convert and transform the raw audio data into a format that can be used for further analysis or training. Below is a description of each preprocessing script and its purpose:
 
@@ -80,6 +83,11 @@ python pitch_shift_labels.py --directory path/to/files --dest_dir path/to/destin
 ## Modelling
 
 ### 1D CNN
+
+<p align="center">
+ <img src="pics/model_2_root_acc.png" alt="1" width="600" />
+</p>
+
 #### 1. `create_train_test.py`
 This script creates the training and testing datasets in the form of pickles, which include `X_train`, `y_train`, and other necessary data splits.
 
@@ -110,6 +118,10 @@ python run_transfer_learning.py
 * Trains the model for each additional task using transfer learning. Parameters must be adjusted for each task.
 
 ### 2D CNN
+
+<p align="center">
+ <img src="pics/model_3_root_w.png" alt="2" width="600" />
+</p>
 
 #### 1. `create_train_test.py`
 This script creates the training and testing datasets, including `X_train` and `y_train`. It ensures all chord types, including 7 chords, are properly included.
@@ -159,3 +171,10 @@ This script assembles predictions for chord classification and implements metric
 python assemble_preds.py
 ```
 * Assembles model predictions and evaluates chord-related metrics.
+
+# Results
+Results comparing model outputs with model outputs using post processing techniques (see `src/post_processing`).
+
+<p align="center">
+ <img src="pics/smooth_filt_acc.png" alt="1" width="600" />
+</p>
