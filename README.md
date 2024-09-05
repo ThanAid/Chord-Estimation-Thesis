@@ -119,10 +119,10 @@ This script creates the training and testing datasets, including `X_train` and `
 python create_train_test.py
 ```
 
-* Prepares training and testing datasets in the form of pickles, fixing issues with 7 chords.
+* Prepares training and testing datasets in the form of pickles.
 
 #### 2. `fit_model.py`
-This script trains the 2D model using the datasets created in the previous step.
+This script trains the 2D model  for the task of root prediction, using the datasets created in the previous step.
 
 **Usage**:
 ```bash
@@ -142,7 +142,7 @@ python run_transfer_learning.py
 * Trains the model for additional tasks using transfer learning. Adjust parameters as needed for each task.
 
 #### 4. `inference.py`
-This script runs inference on the trained 2D model to predict chords. It includes fixes to ensure 7 chords are handled correctly.
+This script runs inference on the trained 2D model to predict chords.
 
 **Usage**:
 ```bash
