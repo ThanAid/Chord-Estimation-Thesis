@@ -77,3 +77,34 @@ python pitch_shift_labels.py --directory path/to/files --dest_dir path/to/destin
 * You can optionally use `pool` if you want to use pooling for parallel processing.
 * Shifts the pitch of audio files and updates the corresponding labels accordingly.
 
+## Modelling
+
+### 1D CNN
+### 1. `create_train_test.py`
+This script creates the training and testing datasets in the form of pickles, which include `X_train`, `y_train`, and other necessary data splits.
+
+**Usage**:
+```bash
+python create_train_test.py
+```
+
+* Prepares pickled datasets for training and testing the model.
+
+### 2. `fit_cnn.py`
+This script trains the 1D CNN model for the task of root prediction, using the pickled datasets created in the previous step.
+
+**Usage**:
+```bash
+python fit_cnn.py
+```
+
+* Trains the 1D CNN model for root prediction.
+
+### 3. `run_transfer_learning.py`
+This script applies transfer learning to the model for the remaining tasks. You will need to adjust the parameters in the script for each task before running it.
+
+**Usage**:
+```bash
+python run_transfer_learning.py
+```
+* Trains the model for each additional task using transfer learning. Parameters must be adjusted for each task.
