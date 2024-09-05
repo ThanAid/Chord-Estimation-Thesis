@@ -80,7 +80,7 @@ python pitch_shift_labels.py --directory path/to/files --dest_dir path/to/destin
 ## Modelling
 
 ### 1D CNN
-### 1. `create_train_test.py`
+#### 1. `create_train_test.py`
 This script creates the training and testing datasets in the form of pickles, which include `X_train`, `y_train`, and other necessary data splits.
 
 **Usage**:
@@ -90,7 +90,7 @@ python create_train_test.py
 
 * Prepares pickled datasets for training and testing the model.
 
-### 2. `fit_cnn.py`
+#### 2. `fit_cnn.py`
 This script trains the 1D CNN model for the task of root prediction, using the pickled datasets created in the previous step.
 
 **Usage**:
@@ -100,7 +100,7 @@ python fit_cnn.py
 
 * Trains the 1D CNN model for root prediction.
 
-### 3. `run_transfer_learning.py`
+#### 3. `run_transfer_learning.py`
 This script applies transfer learning to the model for the remaining tasks. You will need to adjust the parameters in the script for each task before running it.
 
 **Usage**:
@@ -108,3 +108,54 @@ This script applies transfer learning to the model for the remaining tasks. You 
 python run_transfer_learning.py
 ```
 * Trains the model for each additional task using transfer learning. Parameters must be adjusted for each task.
+
+### 2D CNN
+
+#### 1. `create_train_test.py`
+This script creates the training and testing datasets, including `X_train` and `y_train`. It ensures all chord types, including 7 chords, are properly included.
+
+**Usage**:
+```bash
+python create_train_test.py
+```
+
+* Prepares training and testing datasets in the form of pickles, fixing issues with 7 chords.
+
+#### 2. `fit_model.py`
+This script trains the 2D model using the datasets created in the previous step.
+
+**Usage**:
+```bash
+python fit_model.py
+```
+
+* Trains the 2D model for chord classification.
+
+#### 3. `run_transfer_learning.py`
+This script applies transfer learning to the 2D model for additional tasks. You will need to adjust parameters in the script based on the task being performed.
+
+**Usage**:
+```bash
+python run_transfer_learning.py
+```
+
+* Trains the model for additional tasks using transfer learning. Adjust parameters as needed for each task.
+
+#### 4. `inference.py`
+This script runs inference on the trained 2D model to predict chords. It includes fixes to ensure 7 chords are handled correctly.
+
+**Usage**:
+```bash
+python inference.py
+```
+
+* Runs inference on the trained 2D model and generates chord predictions.
+
+#### 5. `assemble_preds.py`
+This script assembles predictions for chord classification and implements metrics for evaluating parts of chords.
+
+**Usage**:
+```bash
+python assemble_preds.py
+```
+* Assembles model predictions and evaluates chord-related metrics.
