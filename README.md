@@ -20,6 +20,8 @@ research contributes a comprehensive framework that leverages deep learning meth
 ologies, sophisticated feature engineering, and post-processing techniques, showcasing
 its potential to advance music information retrieval systems.
 
+The PDF Report can be found [here](Chord-Recognition-Aidinis.pdf)
+
 ## Preprocessing
 <p align="center">
  <img src="pics/spectogram.png" alt="PrePro" width="600" />
